@@ -1,4 +1,4 @@
-dgate：API Gateway based on Vert.x
+# dgate：API Gateway based on Vert.x
 
 dgate是基于Vertx的API Gateway。运行dgate的命令如下：
 
