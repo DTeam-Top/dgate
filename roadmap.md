@@ -32,3 +32,7 @@ security {
 考虑采用rx编程模型进一步提高性能，当然，前后需要比较一下。目前大致如下（单request，与直接发往后台service对比）：
 - CompletableFuture.allOf + CompletableFuture.whenCompleted，+200ms
 - 遍历每个CompletableFuture + Atomic变量，+400ms
+
+## 断路器支持配置
+
+目前dgate的断路器是默认配置,未来可考虑支持配置选项
