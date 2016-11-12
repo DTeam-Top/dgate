@@ -1,0 +1,68 @@
+import io.vertx.core.http.HttpMethod
+
+apiGateway1 {
+    port = 7000
+    login = "/login"
+    urls {
+        "/login" {
+            required = ["sub", "password"]
+            methods = [HttpMethod.GET, HttpMethod.POST]
+            upstreamURLs = [
+                [
+                    host: 'localhost', port: 8080, url: '/login',
+                    after: { simpleResponse ->
+                        simpleResponse.put(tokenGenerator.token(["sub": "13572209183", "name": "foxgem",
+                                                                 "role": "normal"], 2))
+                        simpleResponse
+                    }
+                ]
+            ]
+        }
+        "/mock" {
+            expected {
+                statusCode = 200
+                payload = [test: true]
+            }
+        }
+        "/forward" {
+            required = ['param1', 'param2']
+            methods = [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]
+            upstreamURLs = [
+                [
+                    host: 'localhost', port: 8080, url: '/test',
+                    before: { jsonObject -> jsonObject },
+                    after: { simpleResponse -> simpleResponse }
+                ]
+            ]
+        }
+        "/composite" {
+            required = ['param1', 'param2']
+            methods = [HttpMethod.GET, HttpMethod.POST]
+            upstreamURLs = [
+                [host: 'localhost', port: 8080, url: '/test1'],
+                [host: 'localhost', port: 8080, url: '/test2']
+            ]
+        }
+    }
+}
+apiGateway2 {
+    port = 7001
+    urls {
+        "/mock" {
+            expected {
+                get {
+                    statusCode = 200
+                    payload = [method: 'get']
+                }
+                post {
+                    statusCode = 200
+                    payload = [method: 'post']
+                }
+                delete {
+                    statusCode = 200
+                    payload = [method: 'delete']
+                }
+            }
+        }
+    }
+}

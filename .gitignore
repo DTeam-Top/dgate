@@ -1,0 +1,6 @@
+*.log
+*.vertx
+build
+*.tmp
+.*
+!.gitignore

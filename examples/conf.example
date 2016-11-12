@@ -1,0 +1,82 @@
+// To run this example: java -jar dgate-0.0.1-fat.jar -Dconf=conf.example
+// 1. Test login handler (401 expected)
+//    curl http://localhost:7000/mock -v
+// 2. Test JWT ({"test":true} expected)
+//    - curl -X POST -F "sub=any_value" -F "password=any_value" http://localhost:7000/login
+//    - curl -H "Authorization:Bearer Token_returned_by_last_command" http://localhost:7000/mock
+
+import io.vertx.core.http.HttpMethod
+import io.vertx.core.Vertx
+import io.vertx.ext.auth.jwt.JWTAuth
+import top.dteam.dgate.utils.*
+
+apiGateway1 {
+    port = 7000
+    login = "/login"
+    urls {
+        "/login" {
+            required = ["sub", "password"]
+            methods = [HttpMethod.GET, HttpMethod.POST]
+            expected {
+                statusCode = 200
+                payload = {
+                    JWTAuth jwtAuth = Utils.createAuthProvider(Vertx.vertx())
+                    JWTTokenGenerator tokenGenerator = new JWTTokenGenerator(jwtAuth)
+                    [token: tokenGenerator.token(["sub": "13572209183", "name": "foxgem", "role": "normal"], 200)]
+                }
+            }
+        }
+        "/mock" {
+            expected {
+                statusCode = 200
+                payload = [test: true]
+            }
+        }
+        "/forward" {
+            required = ['param1', 'param2']
+            methods = [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]
+            upstreamURLs = [
+                [
+                    host: 'localhost', port: 8080, url: '/test',
+                    before: { jsonObject -> jsonObject },
+                    after: { simpleResponse -> simpleResponse }
+                ]
+            ]
+        }
+        "/composite" {
+            required = ['param1', 'param2']
+            methods = [HttpMethod.GET, HttpMethod.POST]
+            upstreamURLs = [
+                [host: 'localhost', port: 8080, url: '/test1'],
+                [host: 'localhost', port: 8080, url: '/test2']
+            ]
+        }
+    }
+}
+apiGateway2 {
+    port = 7001
+    cors {
+        allowedOriginPattern = "*"
+        allowedMethods = [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]
+        allowedHeaders = ['content-type']
+        allowCredentials = true
+    }
+    urls {
+        "/mock" {
+            expected {
+                get {
+                    statusCode = 200
+                    payload = [method: 'get']
+                }
+                post {
+                    statusCode = 200
+                    payload = [method: 'post']
+                }
+                delete {
+                    statusCode = 200
+                    payload = [method: 'delete']
+                }
+            }
+        }
+    }
+}
