@@ -75,9 +75,9 @@ public abstract class RequestHandler implements Handler<RoutingContext> {
                 return;
             } else {
                 HashMap error = new HashMap();
-                error.put("error", "不支持的HTTP Method.");
+                error.put("error", "Unsupported HTTP Method.");
                 Utils.fireJsonResponse(routingContext.response(), 400, error);
-                throw new UnsupportedOperationException("不支持的HTTP Method.");
+                throw new UnsupportedOperationException("Unsupported HTTP Method.");
             }
         }
     }
@@ -93,15 +93,15 @@ public abstract class RequestHandler implements Handler<RoutingContext> {
         } else if (requiredParams() instanceof Map) {
             params = (List) ((Map) requiredParams()).get(routingContext.request().method().toString().toLowerCase());
         } else {
-            throw new InvalidConfiguriationException("required只能是List或Map:" + requiredParams().getClass().getName());
+            throw new InvalidConfiguriationException("required must be List or Map:" + requiredParams().getClass().getName());
         }
 
         if (params != null && !params.isEmpty()) {
             if (params.stream().anyMatch(param -> !body.containsKey(param))) {
                 HashMap error = new HashMap();
-                error.put("error", "参数不全.");
+                error.put("error", "required params not in request.");
                 Utils.fireJsonResponse(routingContext.response(), 400, error);
-                throw new IllegalArgumentException("参数不全");
+                throw new IllegalArgumentException("required params not in request");
             }
         }
     }

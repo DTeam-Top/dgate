@@ -23,7 +23,7 @@ public class CircuitBreakerMonitor extends AbstractVerticle {
 
     @Override
     public void stop() {
-        consumer.unregister(); //若不注销,则当用ctrl-c停止应用时,会报异常
+        consumer.unregister(); //otherwise, an Exception will be thrown when stopped by ctrl-c
     }
 
 }

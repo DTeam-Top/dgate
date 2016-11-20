@@ -76,7 +76,7 @@ class ApiGatewayIntegationSpec extends Specification {
         vertx.close()
     }
 
-    def "未登录访问/forward应该返回401"() {
+    def "should get 401 when request /forward before login"() {
         setup:
         SimpleResponse result
 
@@ -91,7 +91,7 @@ class ApiGatewayIntegationSpec extends Specification {
         result.statusCode == 401
     }
 
-    def "使用不支持方法访问/login应该返回400"() {
+    def "should get 400 when request /login with unsupported HTTP methods"() {
         setup:
         SimpleResponse result
 
@@ -106,7 +106,7 @@ class ApiGatewayIntegationSpec extends Specification {
     }
 
     @Unroll
-    def "访问/login但未给全参数应该返回400"() {
+    def "should get 400 when request /login with required not in the request"() {
         setup:
         SimpleResponse result
 
@@ -129,7 +129,7 @@ class ApiGatewayIntegationSpec extends Specification {
     }
 
     @Unroll
-    def "访问/login成功后应该有jwtToken"() {
+    def "should get a jwt token when request /login successfully"() {
         setup:
         SimpleResponse result
 
@@ -150,7 +150,7 @@ class ApiGatewayIntegationSpec extends Specification {
         '/login'                                    | [sub: '13572209183', password: 'password']
     }
 
-    def "登录成功后应该能访问/forward且jwtToken和api gateway的名字都能传给它"() {
+    def "should get 200 and a payload including a jwt token & the name of api gateway when request /forward after login"() {
         setup:
         SimpleResponse result
 
@@ -171,7 +171,7 @@ class ApiGatewayIntegationSpec extends Specification {
         result.payload.map.params.token.role == 'normal'
     }
 
-    def "超时之后无法用同样的token访问/forward"() {
+    def "should get 401 when request /forward with an expired jwt token "() {
         setup:
         SimpleResponse result
 
