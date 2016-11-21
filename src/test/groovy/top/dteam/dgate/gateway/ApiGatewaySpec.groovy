@@ -39,7 +39,7 @@ class ApiGatewaySpec extends Specification {
     }
 
     @Unroll
-    def "[#url]应该可以正常工作"() {
+    def "[#url] should work"() {
         setup:
         SimpleResponse result
 
@@ -63,7 +63,7 @@ class ApiGatewaySpec extends Specification {
                                                                             method2: HttpMethod.GET, params2: [method: "get", nameOfApiGateway: 'testGateway']]
     }
 
-    def "应该可以mock login并得到jwt token"() {
+    def "could mock login and get a jwt token"() {
         setup:
         SimpleResponse result
 

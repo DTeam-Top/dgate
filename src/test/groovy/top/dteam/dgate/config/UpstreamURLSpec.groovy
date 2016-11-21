@@ -7,7 +7,7 @@ import spock.lang.Unroll
 class UpstreamURLSpec extends Specification {
 
     @Unroll
-    def "对于无参数的url应该返回原值: #url"() {
+    def "should return itself for a url without path params: #url"() {
         setup:
         UpstreamURL upstreamURL = new UpstreamURL(host: 'localhost', port: 8080, url: url)
 
@@ -24,7 +24,7 @@ class UpstreamURLSpec extends Specification {
     }
 
     @Unroll
-    def "对于必填参数应该能工作: #url"() {
+    def "url could include required path params: #url"() {
         setup:
         UpstreamURL upstreamURL = new UpstreamURL(host: 'localhost', port: 8080, url: url)
 
@@ -43,7 +43,7 @@ class UpstreamURLSpec extends Specification {
     }
 
     @Unroll
-    def "若缺少必填参数应该抛异常"() {
+    def "should throw an exception if required path params not exist"() {
         setup:
         UpstreamURL upstreamURL = new UpstreamURL(host: 'localhost', port: 8080, url: url)
 
@@ -62,7 +62,7 @@ class UpstreamURLSpec extends Specification {
     }
 
     @Unroll
-    def "对于可选参数应该能工作: #url (#context)"() {
+    def "url could include optional path params: #url (#context)"() {
         setup:
         UpstreamURL upstreamURL = new UpstreamURL(host: 'localhost', port: 8080, url: url)
 
@@ -87,7 +87,7 @@ class UpstreamURLSpec extends Specification {
     }
 
     @Unroll
-    def "若可选参数没有且不是最后一个应该抛异常: #url (#context)"() {
+    def "should throw an exception if missed optional path params are not the last ones in a url: #url (#context)"() {
         setup:
         UpstreamURL upstreamURL = new UpstreamURL(host: 'localhost', port: 8080, url: url)
 

@@ -39,7 +39,7 @@ class CompositeRequestSpec extends Specification {
     }
 
     @Unroll
-    def "#method方法应该可正常工作"() {
+    def "#method should work"() {
         setup:
         SimpleResponse result
 
@@ -63,7 +63,7 @@ class CompositeRequestSpec extends Specification {
     }
 
     @Unroll
-    def "对于[#url]应该返回正确的响应代码: #statusCode"() {
+    def "[#url] should expect status code: #statusCode"() {
         setup:
         SimpleResponse result
 
@@ -85,7 +85,7 @@ class CompositeRequestSpec extends Specification {
     }
 
     @Unroll
-    def "对于[#method]应该能正确设置before和after的Context"() {
+    def "could set context of before and after closures for [#method]"() {
         setup:
         SimpleResponse result
 

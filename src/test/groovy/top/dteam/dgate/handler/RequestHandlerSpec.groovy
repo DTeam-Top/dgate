@@ -29,7 +29,7 @@ class RequestHandlerSpec extends Specification {
     }
 
     @Unroll
-    def "required应该支持list: #url (#body)"() {
+    def "required could be a list: #url (#body)"() {
         setup:
         SimpleResponse result
 
@@ -57,7 +57,7 @@ class RequestHandlerSpec extends Specification {
     }
 
     @Unroll
-    def "required应该支持map: #url (#body)"() {
+    def "required could be a map: #url (#body)"() {
         setup:
         SimpleResponse result
 

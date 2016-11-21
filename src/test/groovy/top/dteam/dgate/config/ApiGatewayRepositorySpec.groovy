@@ -7,7 +7,7 @@ import top.dteam.dgate.gateway.SimpleResponse
 
 class ApiGatewayRepositorySpec extends Specification {
 
-    def "应该能正确地根据配置内容解析"() {
+    def "configuration should be parsed correctly"() {
         setup:
         String config = """
             import io.vertx.core.http.HttpMethod

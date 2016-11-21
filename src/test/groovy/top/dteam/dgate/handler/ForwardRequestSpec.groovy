@@ -39,7 +39,7 @@ class ForwardRequestSpec extends Specification {
     }
 
     @Unroll
-    def "#method方法应该能被正确forward"() {
+    def "#method should be forwarded correctly"() {
         setup:
         SimpleResponse result
 
@@ -61,7 +61,7 @@ class ForwardRequestSpec extends Specification {
         "delete" | new JsonObject([method: "delete"]) | HttpMethod.DELETE
     }
 
-    def "对于不支持的方法应该返回400【Bad Request】"() {
+    def "should get 400【Bad Request】for unsupported method"() {
         setup:
         SimpleResponse result
 
@@ -76,7 +76,7 @@ class ForwardRequestSpec extends Specification {
         result.statusCode == 400
     }
 
-    def "对于请求超时应该返回500"() {
+    def "should get 500 for 'operation timeout'"() {
         setup:
         SimpleResponse result
 
@@ -92,7 +92,7 @@ class ForwardRequestSpec extends Specification {
         result.payload.map.error == "operation timeout"
     }
 
-    def "对于CB处于打开状态的URL应该立即返回"() {
+    def "should return immediately if Circuit Breaker is opened"() {
         setup:
         SimpleResponse result
         requestsMakingCBOpen()
@@ -110,7 +110,7 @@ class ForwardRequestSpec extends Specification {
     }
 
     @Unroll
-    def "UpstreamURL的before和after处理器应该起作用(#method)"() {
+    def "before handler and after handler in UpstreamURL should work. (#method)"() {
         setup:
         SimpleResponse result
 
@@ -135,7 +135,7 @@ class ForwardRequestSpec extends Specification {
     }
 
     @Unroll
-    def "UpstreamURL的url template应该其作用: #url(#params)"() {
+    def "url template in UpstreamURL should work: #url(#params)"() {
         setup:
         SimpleResponse result
 
@@ -160,7 +160,7 @@ class ForwardRequestSpec extends Specification {
     }
 
     @Unroll
-    def "当上游服务必需的pathParam不存在时应该返回500: #url(#params)"() {
+    def "should get 500 if pathParams required by upstream not exist: #url(#params)"() {
         setup:
         SimpleResponse result
 
@@ -175,7 +175,7 @@ class ForwardRequestSpec extends Specification {
         result.statusCode == 500
     }
 
-    def "应该支持pathParam"() {
+    def "should support pathParams"() {
         setup:
         SimpleResponse result
 

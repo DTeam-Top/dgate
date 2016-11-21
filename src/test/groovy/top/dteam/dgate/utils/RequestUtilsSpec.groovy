@@ -30,7 +30,7 @@ class RequestUtilsSpec extends Specification {
     }
 
     @Unroll
-    def "#method方法应该可以正常工作【hasBody=#hasBody】"() {
+    def "#method should work【hasBody=#hasBody】"() {
         setup:
         SimpleResponse result
         router.route("/test").handler(createHandler(hasBody))

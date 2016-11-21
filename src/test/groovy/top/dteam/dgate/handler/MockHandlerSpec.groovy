@@ -29,7 +29,7 @@ class MockHandlerSpec extends Specification {
     }
 
     @Unroll
-    def "若不指定具体HTTP Method则Mock的内容适合所有HTTP Method请求: #method"() {
+    def "could provide a mock response for all HTTP Methods: #method"() {
         setup:
         SimpleResponse result
 
@@ -48,7 +48,7 @@ class MockHandlerSpec extends Specification {
     }
 
     @Unroll
-    def "应该返回对应HTTP Method的Mock: #method"() {
+    def "could provide a mock response for a pointed HTTP Method: #method"() {
         setup:
         SimpleResponse result
 
