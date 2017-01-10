@@ -7,7 +7,7 @@ class ApiGatewayConfig {
 
     String name
     int port
-    String login
+    LoginConfig login
     CorsConfig cors
     List<UrlConfig> urlConfigs
 

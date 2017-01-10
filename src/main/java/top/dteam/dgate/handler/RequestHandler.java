@@ -1,5 +1,6 @@
 package top.dteam.dgate.handler;
 
+import io.vertx.ext.auth.jwt.JWTAuth;
 import top.dteam.dgate.config.InvalidConfiguriationException;
 import top.dteam.dgate.utils.Utils;
 import top.dteam.dgate.config.UrlConfig;
@@ -26,11 +27,17 @@ public abstract class RequestHandler implements Handler<RoutingContext> {
     protected UrlConfig urlConfig;
     protected String nameOfApiGateway;
 
-    public static RequestHandler create(Vertx vertx, UrlConfig urlConfig) {
+    public static RequestHandler create(Vertx vertx, UrlConfig urlConfig, JWTAuth jwtAuth) {
         int requestHandlerType = urlConfig.requestHandlerType();
         if (requestHandlerType == UrlConfig.PROXY) {
-            return new ProxyHandler(vertx, urlConfig,
-                    new CircuitBreakerOptions().setMaxFailures(3).setTimeout(5000).setResetTimeout(10000));
+            if (jwtAuth == null) {
+                return new ProxyHandler(vertx, urlConfig,
+                        new CircuitBreakerOptions().setMaxFailures(3).setTimeout(5000).setResetTimeout(10000));
+            } else {
+                return new LoginHandler(vertx, urlConfig,
+                        new CircuitBreakerOptions().setMaxFailures(3).setTimeout(5000).setResetTimeout(10000),
+                        jwtAuth);
+            }
         } else if (requestHandlerType == UrlConfig.MOCK) {
             return new MockHandler(vertx, urlConfig);
         } else {

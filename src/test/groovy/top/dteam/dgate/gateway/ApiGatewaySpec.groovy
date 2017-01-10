@@ -9,6 +9,7 @@ import io.vertx.ext.web.Router
 import spock.lang.Specification
 import spock.lang.Unroll
 import top.dteam.dgate.config.ApiGatewayConfig
+import top.dteam.dgate.config.LoginConfig
 import top.dteam.dgate.config.UpstreamURL
 import top.dteam.dgate.config.UrlConfig
 import top.dteam.dgate.utils.JWTTokenGenerator
@@ -20,6 +21,8 @@ class ApiGatewaySpec extends Specification {
 
     private static final int GATEWAY_PORT = 7000
     private static final int GATEWAY_PORT_WITH_LOGIN = 7001
+    private static final int GATEWAY_PORT_WITH_LOGIN_IGNORE = 7002
+    private static final int GATEWAY_PORT_WITH_LOGIN_ONLY = 7003
 
     Vertx vertx
     HttpServer destServer
@@ -31,6 +34,8 @@ class ApiGatewaySpec extends Specification {
         requestUtils = new RequestUtils(vertx)
         vertx.deployVerticle(new ApiGateway(prepareConfig()))
         vertx.deployVerticle(new ApiGateway(prepareConfigWithMockLogin()))
+        vertx.deployVerticle(new ApiGateway(prepareConfigWithLoginConfigConatainingIgnore()))
+        vertx.deployVerticle(new ApiGateway(prepareConfigWithLoginConfigConatainingOnly()))
     }
 
     void cleanup() {
@@ -77,6 +82,50 @@ class ApiGatewaySpec extends Specification {
         then:
         result.statusCode == 200
         result.payload.getString('token').split(/\./).size() == 3
+    }
+
+    @Unroll
+    def "could only access those urls in ignore list in login block directly: #url"() {
+        setup:
+        SimpleResponse result
+
+        when:
+        sleep(100)
+        requestUtils.get("localhost", GATEWAY_PORT_WITH_LOGIN_IGNORE, url, new JsonObject()) { simpleResponse ->
+            result = simpleResponse
+        }
+        TestUtils.waitResult(result, 1500)
+
+        then:
+        result.statusCode == statusCode
+
+        where:
+        url            | statusCode
+        '/mock-ignore' | 200
+        '/mock'        | 401
+        '/login'       | 200
+    }
+
+    @Unroll
+    def "could only access those urls not in only list in login block directly: #url"() {
+        setup:
+        SimpleResponse result
+
+        when:
+        sleep(100)
+        requestUtils.get("localhost", GATEWAY_PORT_WITH_LOGIN_ONLY, url, new JsonObject()) { simpleResponse ->
+            result = simpleResponse
+        }
+        TestUtils.waitResult(result, 1500)
+
+        then:
+        result.statusCode == statusCode
+
+        where:
+        url          | statusCode
+        '/mock-only' | 401
+        '/mock'      | 200
+        '/login'     | 200
     }
 
     private HttpServer createDestServer() {
@@ -132,7 +181,7 @@ class ApiGatewaySpec extends Specification {
         new ApiGatewayConfig(
                 name: 'testGateway',
                 port: GATEWAY_PORT_WITH_LOGIN,
-                login: '/login',
+                login: new LoginConfig('/login'),
                 urlConfigs: [new UrlConfig(url: "/login",
                         expected: [statusCode: 200,
                                    payload   : {
@@ -142,6 +191,48 @@ class ApiGatewaySpec extends Specification {
                                                                      "role": "normal"], 200)]
                                    }()
                         ])]
+        )
+    }
+
+    private ApiGatewayConfig prepareConfigWithLoginConfigConatainingIgnore() {
+        new ApiGatewayConfig(
+                name: 'testGateway',
+                port: GATEWAY_PORT_WITH_LOGIN_IGNORE,
+                login: new LoginConfig([url: '/login', ignore: ['/mock-ignore']]),
+                urlConfigs: [new UrlConfig(url: "/mock-ignore", expected: [statusCode: 200,
+                                                                           payload   : [ignore: true]]),
+                             new UrlConfig(url: "/mock", expected: [statusCode: 200,
+                                                                    payload   : [ignore: false]]),
+                             new UrlConfig(url: "/login",
+                                     expected: [statusCode: 200,
+                                                payload   : {
+                                                    JWTAuth jwtAuth = Utils.createAuthProvider(vertx)
+                                                    JWTTokenGenerator tokenGenerator = new JWTTokenGenerator(jwtAuth)
+                                                    [token: tokenGenerator.token(["sub" : "13572209183", "name": "foxgem",
+                                                                                  "role": "normal"], 200)]
+                                                }()])
+                ]
+        )
+    }
+
+    private ApiGatewayConfig prepareConfigWithLoginConfigConatainingOnly() {
+        new ApiGatewayConfig(
+                name: 'testGateway',
+                port: GATEWAY_PORT_WITH_LOGIN_ONLY,
+                login: new LoginConfig([url: '/login', only: ['/mock-only']]),
+                urlConfigs: [new UrlConfig(url: "/login",
+                        expected: [statusCode: 200,
+                                   payload   : {
+                                       JWTAuth jwtAuth = Utils.createAuthProvider(vertx)
+                                       JWTTokenGenerator tokenGenerator = new JWTTokenGenerator(jwtAuth)
+                                       [token: tokenGenerator.token(["sub" : "13572209183", "name": "foxgem",
+                                                                     "role": "normal"], 200)]
+                                   }()]),
+                             new UrlConfig(url: "/mock-only", expected: [statusCode: 200,
+                                                                         payload   : [only: true]]),
+                             new UrlConfig(url: "/mock", expected: [statusCode: 200,
+                                                                    payload   : [only: false]]),
+                ]
         )
     }
 

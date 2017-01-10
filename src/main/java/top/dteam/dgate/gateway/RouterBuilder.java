@@ -2,6 +2,7 @@ package top.dteam.dgate.gateway;
 
 import top.dteam.dgate.config.ApiGatewayConfig;
 import top.dteam.dgate.config.CorsConfig;
+import top.dteam.dgate.config.LoginConfig;
 import top.dteam.dgate.config.UrlConfig;
 import top.dteam.dgate.handler.LoginHandler;
 import top.dteam.dgate.handler.RequestHandler;
@@ -16,9 +17,8 @@ import io.vertx.ext.web.handler.JWTAuthHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class RouterBuilder {
 
@@ -68,29 +68,40 @@ public class RouterBuilder {
 
     private static void addRequestHandlers(Vertx vertx, Router router, ApiGatewayConfig apiGatewayConfig) {
         List<UrlConfig> urlConfigs = apiGatewayConfig.getUrlConfigs();
-        String login = apiGatewayConfig.getLogin();
+        LoginConfig login = apiGatewayConfig.getLogin();
+        JWTAuth auth = createAuthIfNeeded(vertx, router, login, urlConfigs);
 
         urlConfigs.forEach(urlConfig -> {
-            if (login != null && urlConfig.getUrl().equals(login)) {
-                addLoginHandler(vertx, router, login, urlConfig, apiGatewayConfig.getName());
+            if (login != null && urlConfig.getUrl().equals(login.login())) {
+                router.route(urlConfig.getUrl()).handler(RequestHandler.create(vertx, urlConfig, auth)
+                        .nameOfApiGateway(apiGatewayConfig.getName()));
             } else {
-                router.route(urlConfig.getUrl()).handler(RequestHandler.create(vertx, urlConfig)
+                router.route(urlConfig.getUrl()).handler(RequestHandler.create(vertx, urlConfig, null)
                         .nameOfApiGateway(apiGatewayConfig.getName()));
             }
         });
     }
 
-    private static void addLoginHandler(Vertx vertx, Router router, String login, UrlConfig urlConfig,
-                                        String nameOfApiGateway) {
-        JWTAuth jwtAuth = Utils.createAuthProvider(vertx);
-        router.route().handler(JWTAuthHandler.create(jwtAuth, login));
-        if (urlConfig.requestHandlerType() == UrlConfig.PROXY) {
-            router.route(login).handler(new LoginHandler(vertx, urlConfig,
-                    new CircuitBreakerOptions().setMaxFailures(3).setTimeout(5000).setResetTimeout(10000),
-                    jwtAuth).nameOfApiGateway(nameOfApiGateway));
+    private static JWTAuth createAuthIfNeeded(Vertx vertx, Router router, LoginConfig login,
+                                              List<UrlConfig> urlConfigs) {
+        if (login != null) {
+            JWTAuth jwtAuth = Utils.createAuthProvider(vertx);
+            JWTAuthHandler jwtAuthHandler = JWTAuthHandler.create(jwtAuth, login.login());
+            if (login.only().isEmpty() && login.ignore().isEmpty()) {
+                router.route().handler(JWTAuthHandler.create(jwtAuth, login.login()));
+            } else if (login.ignore().isEmpty()) {
+                login.only().forEach(url -> router.route(url).handler(jwtAuthHandler));
+            } else if (login.only().isEmpty()) {
+                List<String> allUrls = urlConfigs.stream().map(config -> config.getUrl()).collect(Collectors.toList());
+                allUrls.removeAll(login.ignore());
+                allUrls.remove(login.login());
+
+                allUrls.forEach(url -> router.route(url).handler(jwtAuthHandler));
+            }
+
+            return jwtAuth;
         } else {
-            router.route(login).handler(RequestHandler.create(vertx, urlConfig)
-                    .nameOfApiGateway(nameOfApiGateway));
+            return null;
         }
     }
 

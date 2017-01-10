@@ -86,6 +86,27 @@ class ApiGatewayRepositorySpec extends Specification {
                     }
                 }
             }
+            apiGateway3 {
+                port = 7002
+                login {
+                    url = '/login'
+                    ignore = ['/pub']
+                }
+                urls {
+                    "/login" {
+                        expected {
+                            statusCode = 200
+                            payload = [test: true]
+                        }
+                    }
+                    "/pub" {
+                        expected {
+                            statusCode = 200
+                            payload = [test: true]
+                        }
+                    }
+                }
+            }
         """
         SimpleResponse simpleResponse = new SimpleResponse([statusCode: 200, payload: new JsonObject([test: 'test'])])
         JsonObject jsonObject = new JsonObject([test: 'test'])
@@ -94,11 +115,11 @@ class ApiGatewayRepositorySpec extends Specification {
         ApiGatewayRepository repository = ApiGatewayRepository.build(config)
 
         then:
-        repository.size() == 2
+        repository.size() == 3
         with(repository[0]) {
             port == 7000
             name == 'apiGateway1'
-            login == '/login'
+            login.login() == '/login'
             with(cors) {
                 allowedOriginPattern == "http://127.0.0.1"
                 allowedMethods == new HashSet<>([HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])
@@ -156,6 +177,16 @@ class ApiGatewayRepositorySpec extends Specification {
             urlConfigs[0].expected == [get   : [statusCode: 200, payload: [method: 'get']],
                                        post  : [statusCode: 200, payload: [method: 'post']],
                                        delete: [statusCode: 200, payload: [method: 'delete']]]
+        }
+        with(repository[2]) {
+            port == 7002
+            name == 'apiGateway3'
+            login
+            login.login() == '/login'
+            login.ignore() == ['/pub']
+            !login.only()
+            !cors
+            urlConfigs.size() == 2
         }
     }
 
