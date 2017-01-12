@@ -66,6 +66,7 @@ apiGateway1 {
 }
 apiGateway2 {
     port = 7001
+    host = 'localhost'
     urls {
         "/mock" {
             expected {
@@ -84,6 +85,7 @@ conf文件由多个Api Gateway的定义组成，对于每个Gateway定义如下�
 ~~~
 apiGatewayName {
     port //端口
+    host //绑定的ip或主机名,默认0.0.0.0
     login //后端login服务的配置
     urls { URL配置（UrlConfig）列表 } //dgate暴露的url列表
 }

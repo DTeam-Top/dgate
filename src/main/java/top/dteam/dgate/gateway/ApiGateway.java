@@ -21,9 +21,10 @@ public class ApiGateway extends AbstractVerticle {
     public void start() {
         HttpServer httpServer = vertx.createHttpServer();
         Router router = RouterBuilder.builder(vertx, config);
-        httpServer.requestHandler(router::accept).listen(config.getPort(), result -> {
+        httpServer.requestHandler(router::accept).listen(config.getPort(), config.getHost(), result -> {
             if (result.succeeded()) {
-                logger.info("API Gateway {} is listening at {} ...", config.getName(), config.getPort());
+                logger.info("API Gateway {} is listening at {}:{} ...",
+                        config.getName(), config.getHost(), config.getPort());
             }
         });
     }
