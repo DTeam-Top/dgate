@@ -13,3 +13,5 @@ java -jar dgate-version-fat.jar -Dconf=conf
 - git clone
 - gradle shadowJar，生成dgate的fatjar
 - gradle test，运行测试代码
+
+在发起Pull Request时，请同时提交测试代码，并保证现有测试代码【对于测试，我们推荐[Spock](http://spockframework.org/)】能全部通过，;)。
