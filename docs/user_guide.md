@@ -364,7 +364,7 @@ login {
 ~~~
 login {
     url = "/login"
-    ignore = [ 被控制的url ]
+    only = [ 被控制的url ]
 }
 ~~~
 
