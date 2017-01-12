@@ -67,6 +67,7 @@ class ApiGatewayRepositorySpec extends Specification {
             }
             apiGateway2 {
                 port = 7001
+                host = 'localhost'
                 urls {
                     "/mock" {
                         expected {
@@ -170,6 +171,7 @@ class ApiGatewayRepositorySpec extends Specification {
         }
         with(repository[1]) {
             port == 7001
+            host == 'localhost'
             name == 'apiGateway2'
             !login
             !cors
@@ -180,6 +182,7 @@ class ApiGatewayRepositorySpec extends Specification {
         }
         with(repository[2]) {
             port == 7002
+            host == '0.0.0.0'
             name == 'apiGateway3'
             login
             login.login() == '/login'

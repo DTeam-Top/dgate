@@ -37,6 +37,7 @@ class ApiGatewayRepository {
     private static ApiGatewayConfig buildApiGateway(def key, def body) {
         String name = key
         int port = body.port
+        String host = body.host ?: '0.0.0.0'
         LoginConfig login = body.login ? buildLogin(body.login) : null
         CorsConfig cors = buildCors(body.cors)
         List<UrlConfig> urlConfigs = new ArrayList<>()
@@ -44,7 +45,14 @@ class ApiGatewayRepository {
             urlConfigs << buildUrl(url, body.urls[url])
         }
 
-        new ApiGatewayConfig(name: name, port: port, urlConfigs: urlConfigs, login: login, cors: cors)
+        new ApiGatewayConfig(
+                name: name,
+                port: port,
+                host: host,
+                urlConfigs: urlConfigs,
+                login: login,
+                cors: cors
+        )
     }
 
     private static LoginConfig buildLogin(def login) {
