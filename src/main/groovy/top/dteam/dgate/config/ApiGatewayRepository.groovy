@@ -12,13 +12,12 @@ class ApiGatewayRepository {
     }
 
     static ApiGatewayRepository load(String file = System.getProperty('conf')) {
-        String config
-        if (file) {
-            config = new File(file).text
-        } else {
-            config = Thread.currentThread().getContextClassLoader().getResource('conf').text
+        if (!file) {
+            throw new FileNotFoundException("Please set config file first!")
         }
 
+        String config
+        config = new File(file).text
         build(config)
     }
 

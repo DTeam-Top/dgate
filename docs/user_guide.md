@@ -261,13 +261,72 @@ UpStreamURL除了支持一般的url格式，还支持url path parameters，格�
 
 即对于每一种HTTP method，都有各自响应体，每个响应体的格式都是由statusCode和payload组成。
 
-## JWT Token
+## 安全
+
+dgate支持JWT Token来认证每个访问层请求，当配置中出现login时，安全机制即被触发。
+
+### Login的配置
+
+若conf中没有login配置，则所有url都是公共可访问的。
+
+若要对所有url都要求先登录，则配置如下：
+
+~~~
+login = "/login"
+~~~
+
+若要忽略某些url，则配置如下：
+
+~~~
+login {
+    url = "/login"
+    ignore = [ 被忽略的url ]
+}
+~~~
+
+若只有部分url是需要访问控制的，则配置如下：
+
+~~~
+login {
+    url = "/login"
+    only = [ 被控制的url ]
+}
+~~~
+
+注意：ignore和only不能同时存在。
+
+### JWT Token
 
 dgate使用JWT Token来认证每个访问层请求，故每个请求必需先请求获得jwt token，然后将每个token放入后续每个request的"Authorization"头，这样每个后续的request才会被认为是有效请求，否则将返回401。
 
 如何产生jwt token的职责由开发者来完成，它必需放入**login**配置部分，上面的例子给出了一个参考实现。
 
-对于发往后端服务的每个请求，dgate会将前端请求Authorization头中的jwt token附到请求的参数内，可以通过**token**来获取。
+对于发往后端服务的每个请求，dgate会将前端请求Authorization头中的jwt token附到请求的参数内，可以通过**token**来获取，此时它已经被解码成一个JSON对象。
+
+产生JWT Token的密钥由下面的三个环境变量决定，故一旦配置中包含login，则需要在启动dgate之前先设置这3个环境变量：
+- dgate_key_store，keystore文件路径
+- dgate_key_type，keystore文件类型
+- dgate_key_password，keystore的密钥，至少6位
+
+下面是一个配置的例子
+
+~~~
+export dgate_key_store=./test1.jceks
+export dgate_key_type=jceks
+export dgate_key_password=test123
+~~~
+
+使用keytool来产生文件，例子如下：
+
+~~~
+keytool -genseckey -keystore test1.jceks -storetype jceks -storepass test123 -keyalg HMacSHA256 -keysize 2048 -alias HS256 -keypass test123
+~~~
+
+由于dgate利用Vert.x的JWTAuthProvider产生JWT Token，因此其密钥文件为符合其要求的文件格式。关于密钥和如何产生密钥文件的命令，可以参见[其文档](http://vertx.io/docs/vertx-auth-jwt/java/)。
+
+注意：
+- 在产品环境中请安全地保管好这个密钥文件！
+- 在开发环境可以使用dgate自带的测试密钥文件：[dgate](../src/test/resources/dgate.jceks)，密码为“dcloud”。请注意不要将其用于产品环境，否则为伪造证书提供了便利。
 
 ### Mock JWT Token
 
@@ -301,7 +360,7 @@ apiGateway {
 
 既然login指向的是dgate暴露的url，那么当然也就是可以直接mock啦。
 
-注意：不要忘记payload本身是一个**闭包**！
+注意：不要忘记payload本身是一个**闭包**！否则，无法模拟JWT Token过期后重新生成另一个Token的情况。
 
 ## CORS支持
 
@@ -341,33 +400,3 @@ dgate会给每个发往后端服务的请求参数中添加若干参数，通过
 - token，已解码的jwt token，其类型是一个Map，内容依赖于在产生token时设置的值。如：在产生时包含[sub, name, role]这几个键值，则此处就获得这3个键值。若在产生时为[sub, name, role, other]，则此处就可以会有这4个键值。
 
 注意：除了必需的几个属性，JWT Token中token本身是可以附加其他属性进来的。相当于将token本身作为信息的载体。
-
-## Login的配置
-
-若conf中没有login配置，则所有url都是公共可访问的。
-
-若要对所有url都要求先登录，则配置如下：
-
-~~~
-login = "/login"
-~~~
-
-若要忽略某些url，则配置如下：
-
-~~~
-login {
-    url = "/login"
-    ignore = [ 被忽略的url ]
-}
-~~~
-
-若只有部分url是需要访问控制的，则配置如下：
-
-~~~
-login {
-    url = "/login"
-    only = [ 被控制的url ]
-}
-~~~
-
-注意：ignore和only不能同时存在。
