@@ -198,13 +198,15 @@ class ForwardRequestSpec extends Specification {
         httpServer.requestHandler(router.&accept).listen(8081)
 
         router.route("/withoutHandler").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/normal")],
-                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/normal",
+                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
+                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/timeout").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/timeout")],
-                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/timeout",
+                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
+                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/withHandler").handler(new ProxyHandler(vertx,
                 new UrlConfig(upstreamURLs: [
                         new UpstreamURL(host: "localhost", port: 8082, url: "/normal",
@@ -215,20 +217,24 @@ class ForwardRequestSpec extends Specification {
                                 after: { simpleResponse ->
                                     simpleResponse.payload.put('addedByAfter', 'addedByAfter')
                                     simpleResponse
-                                })],
-                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                                },
+                                cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                        .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
+                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/unknown").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/unknown")],
-                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/unknown",
+                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
+                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/url-template").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/url-template/:x/:y?/:z?")],
-                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/url-template/:x/:y?/:z?",
+                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
+                        methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/path-params/:id").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/normal")]),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/normal",
+                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))])))
         httpServer
     }
 

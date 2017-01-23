@@ -68,6 +68,11 @@ class ApiGatewayRepositorySpec extends Specification {
             apiGateway2 {
                 port = 7001
                 host = 'localhost'
+                circuitBreaker {
+                    maxFailures = 5
+                    timeout = 10000
+                    resetTimeout = 30000
+                }
                 urls {
                     "/mock" {
                         expected {
@@ -84,6 +89,17 @@ class ApiGatewayRepositorySpec extends Specification {
                                 payload = [method: 'delete']
                             }
                         }
+                    }
+                    "/proxy1" {
+                        upstreamURLs = [
+                            [host: 'localhost', port: 8080, url: '/test1']
+                        ]
+                    }
+                    "/proxy2" {
+                        upstreamURLs = [
+                            [host: 'localhost', port: 8080, url: '/test1',
+                             circuitBreaker: [maxFailures: 2, timeout: 3000, resetTimeout: 3000]]
+                        ]
                     }
                 }
             }
@@ -131,6 +147,7 @@ class ApiGatewayRepositorySpec extends Specification {
             }
             urlConfigs.size() == 4
             with(urlConfigs[0]) {
+                url == '/login'
                 required == ["sub", "password"]
                 methods == [HttpMethod.GET, HttpMethod.POST]
                 upstreamURLs.size == 1
@@ -139,9 +156,13 @@ class ApiGatewayRepositorySpec extends Specification {
                 upstreamURLs[0].url == '/login'
                 !upstreamURLs[0].before
                 upstreamURLs[0].after
+                upstreamURLs[0].cbOptions.maxFailures == 3
+                upstreamURLs[0].cbOptions.timeout == 5000
+                upstreamURLs[0].cbOptions.resetTimeout == 10000
             }
             urlConfigs[1].expected == [statusCode: 200, payload: [test: true]]
             with(urlConfigs[2]) {
+                url == '/forward'
                 required == [get: ['param1'], post: ['param2'], delete: ['param3']]
                 methods == [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]
                 upstreamURLs.size == 1
@@ -153,6 +174,7 @@ class ApiGatewayRepositorySpec extends Specification {
                 upstreamURLs[0].after
                 upstreamURLs[0].after(simpleResponse) == simpleResponse
                 !expected
+                upstreamURLs[0].cbOptions
             }
             with(urlConfigs[3]) {
                 required == ['param1', 'param2']
@@ -163,9 +185,11 @@ class ApiGatewayRepositorySpec extends Specification {
                         new UpstreamURL(host: 'localhost', port: 8080, url: '/test2')
                 ]
                 !upstreamURLs[0].before
+                !upstreamURLs[0].after
+                upstreamURLs[0].cbOptions
+                !upstreamURLs[1].before
                 !upstreamURLs[1].after
-                !upstreamURLs[0].before
-                !upstreamURLs[1].after
+                upstreamURLs[1].cbOptions
                 !expected
             }
         }
@@ -175,10 +199,16 @@ class ApiGatewayRepositorySpec extends Specification {
             name == 'apiGateway2'
             !login
             !cors
-            urlConfigs.size() == 1
+            urlConfigs.size() == 3
             urlConfigs[0].expected == [get   : [statusCode: 200, payload: [method: 'get']],
                                        post  : [statusCode: 200, payload: [method: 'post']],
                                        delete: [statusCode: 200, payload: [method: 'delete']]]
+            urlConfigs[1].upstreamURLs[0].cbOptions.maxFailures == 5
+            urlConfigs[1].upstreamURLs[0].cbOptions.timeout == 10000
+            urlConfigs[1].upstreamURLs[0].cbOptions.resetTimeout == 30000
+            urlConfigs[2].upstreamURLs[0].cbOptions.maxFailures == 2
+            urlConfigs[2].upstreamURLs[0].cbOptions.timeout == 3000
+            urlConfigs[2].upstreamURLs[0].cbOptions.resetTimeout == 3000
         }
         with(repository[2]) {
             port == 7002

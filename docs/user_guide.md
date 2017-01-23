@@ -400,3 +400,43 @@ dgate会给每个发往后端服务的请求参数中添加若干参数，通过
 - token，已解码的jwt token，其类型是一个Map，内容依赖于在产生token时设置的值。如：在产生时包含[sub, name, role]这几个键值，则此处就获得这3个键值。若在产生时为[sub, name, role, other]，则此处就可以会有这4个键值。
 
 注意：除了必需的几个属性，JWT Token中token本身是可以附加其他属性进来的。相当于将token本身作为信息的载体。
+
+## 断路器设置
+
+dgate缺省会为每个上游服务设置一个断路器，缺省的配置如下：
+- 最大失败次数（maxFailures），3次
+- 请求超时（timeout），5秒
+- 断路器重置时间（resetTimeout），10秒
+
+若缺省的设置不合适，dgate支持两个层次的设置：gateway级别和上游服务级别。并且，在两者都存在时，上游服务的断路器设置会覆盖gateway级别的设置。
+
+### gateway级别的设置
+
+这个设置将对gateway内所有的上游服务生效，例子如下：
+
+~~~
+apiGateway {
+    ……
+    circuitBreaker {
+        maxFailures = 5
+        timeout = 10000
+        resetTimeout = 30000
+    }
+    ……
+}
+~~~
+
+### 上游服务级别的设置
+
+这个设置仅对当前上游服务生效，例子如下：
+
+~~~
+……
+"/url" {
+    upstreamURLs = [
+        [host: 'localhost', port: 8080, url: '/test1',
+         circuitBreaker: [maxFailures: 2, timeout: 3000, resetTimeout: 3000]]
+    ]
+}
+……
+~~~

@@ -1,10 +1,5 @@
 package top.dteam.dgate.handler;
 
-import io.vertx.ext.auth.jwt.JWTAuth;
-import top.dteam.dgate.config.InvalidConfiguriationException;
-import top.dteam.dgate.utils.Utils;
-import top.dteam.dgate.config.UrlConfig;
-import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -13,11 +8,17 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.dteam.dgate.config.InvalidConfiguriationException;
+import top.dteam.dgate.config.UrlConfig;
+import top.dteam.dgate.utils.Utils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class RequestHandler implements Handler<RoutingContext> {
 
@@ -31,12 +32,9 @@ public abstract class RequestHandler implements Handler<RoutingContext> {
         int requestHandlerType = urlConfig.requestHandlerType();
         if (requestHandlerType == UrlConfig.PROXY) {
             if (jwtAuth == null) {
-                return new ProxyHandler(vertx, urlConfig,
-                        new CircuitBreakerOptions().setMaxFailures(3).setTimeout(5000).setResetTimeout(10000));
+                return new ProxyHandler(vertx, urlConfig);
             } else {
-                return new LoginHandler(vertx, urlConfig,
-                        new CircuitBreakerOptions().setMaxFailures(3).setTimeout(5000).setResetTimeout(10000),
-                        jwtAuth);
+                return new LoginHandler(vertx, urlConfig, jwtAuth);
             }
         } else if (requestHandlerType == UrlConfig.MOCK) {
             return new MockHandler(vertx, urlConfig);

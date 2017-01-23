@@ -1,13 +1,7 @@
 package top.dteam.dgate.handler;
 
-import top.dteam.dgate.config.UpstreamURL;
-import top.dteam.dgate.config.UrlConfig;
-import top.dteam.dgate.gateway.SimpleResponse;
-import top.dteam.dgate.utils.RequestUtils;
-import top.dteam.dgate.utils.Utils;
 import groovy.lang.Closure;
 import io.vertx.circuitbreaker.CircuitBreaker;
-import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -15,8 +9,16 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.dteam.dgate.config.UpstreamURL;
+import top.dteam.dgate.config.UrlConfig;
+import top.dteam.dgate.gateway.SimpleResponse;
+import top.dteam.dgate.utils.RequestUtils;
+import top.dteam.dgate.utils.Utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,7 +30,7 @@ public class ProxyHandler extends RequestHandler {
     private Map<String, CircuitBreaker> circuitBreakers;
     private RequestUtils requestUtils;
 
-    public ProxyHandler(Vertx vertx, UrlConfig urlConfig, CircuitBreakerOptions circuitBreakerOptions) {
+    public ProxyHandler(Vertx vertx, UrlConfig urlConfig) {
         super(vertx, urlConfig);
 
         upstreamURLs = urlConfig.getUpstreamURLs();
@@ -38,7 +40,7 @@ public class ProxyHandler extends RequestHandler {
         upstreamURLs.forEach(upStreamURL ->
             circuitBreakers.put(upStreamURL.toString(),
                     CircuitBreaker.create(String.format("cb-%s-%s", urlConfig.getUrl(),
-                            upStreamURL.toString()), vertx, circuitBreakerOptions))
+                            upStreamURL.toString()), vertx, upStreamURL.getCbOptions()))
         );
     }
 

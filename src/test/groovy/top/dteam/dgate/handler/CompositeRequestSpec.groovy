@@ -117,41 +117,53 @@ class CompositeRequestSpec extends Specification {
         router.route("/allSuccess").handler(new ProxyHandler(vertx,
                 new UrlConfig(
                         upstreamURLs: Arrays.asList(
-                                new UpstreamURL(host: "localhost", port: 8082, url: "/success1"),
-                                new UpstreamURL(host: "localhost", port: 8082, url: "/success2")
+                                new UpstreamURL(host: "localhost", port: 8082, url: "/success1",
+                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)),
+                                new UpstreamURL(host: "localhost", port: 8082, url: "/success2",
+                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))
                         )
-                ),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                )))
         router.route("/allFailure").handler(new ProxyHandler(vertx,
                 new UrlConfig(
                         upstreamURLs: Arrays.asList(
-                                new UpstreamURL(host: "localhost", port: 8082, url: "/failure1"),
-                                new UpstreamURL(host: "localhost", port: 8082, url: "/failure2")
+                                new UpstreamURL(host: "localhost", port: 8082, url: "/failure1",
+                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)),
+                                new UpstreamURL(host: "localhost", port: 8082, url: "/failure2",
+                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))
                         )
-                ),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                )))
         router.route("/partialSuccess").handler(new ProxyHandler(vertx,
                 new UrlConfig(
                         upstreamURLs: Arrays.asList(
-                                new UpstreamURL(host: "localhost", port: 8082, url: "/failure1"),
-                                new UpstreamURL(host: "localhost", port: 8082, url: "/success2")
+                                new UpstreamURL(host: "localhost", port: 8082, url: "/failure1",
+                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)),
+                                new UpstreamURL(host: "localhost", port: 8082, url: "/success2",
+                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))
                         )
-                ),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                )))
         router.route("/checkHandlerContext").handler(new SubProxyHandler(vertx,
                 new UrlConfig(
                         upstreamURLs: Arrays.asList(
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/success1", before: { params ->
                                     params.put("before", paramForBefore)
                                     params
-                                }),
+                                },
+                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)),
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/success2", after: { simpleResponse ->
                                     simpleResponse.payload.put("after", paramForAfter)
                                     simpleResponse
-                                })
+                                },
+                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                                .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))
                         )
-                ),
-                new CircuitBreakerOptions().setMaxFailures(3).setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)))
+                )))
 
         httpServer
     }
@@ -200,8 +212,8 @@ class CompositeRequestSpec extends Specification {
 
     class SubProxyHandler extends ProxyHandler {
 
-        SubProxyHandler(Vertx vertx, UrlConfig urlConfig, CircuitBreakerOptions circuitBreakerOptions) {
-            super(vertx, urlConfig, circuitBreakerOptions)
+        SubProxyHandler(Vertx vertx, UrlConfig urlConfig) {
+            super(vertx, urlConfig)
         }
 
         @Override

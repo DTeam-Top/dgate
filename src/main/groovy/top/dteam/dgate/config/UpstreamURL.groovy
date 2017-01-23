@@ -2,16 +2,18 @@ package top.dteam.dgate.config
 
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import io.vertx.circuitbreaker.CircuitBreakerOptions
 import io.vertx.core.json.JsonObject
 import top.dteam.dgate.gateway.SimpleResponse
 
-@EqualsAndHashCode(excludes = ['before', 'after'])
+@EqualsAndHashCode(excludes = ['before', 'after', 'cbOptions'])
 @CompileStatic
 class UpstreamURL {
 
     String host
     int port
     String url
+    CircuitBreakerOptions cbOptions
 
     Closure<JsonObject> before
     Closure<SimpleResponse> after

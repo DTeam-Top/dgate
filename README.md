@@ -41,6 +41,7 @@ dgate的主要特性：
 - 支持JWT
 - 支持CORS
 - 灵活的login配置
+- 支持断路器
 
 详细的用户指南请访问[这里](./docs/user_guide.md)。
 

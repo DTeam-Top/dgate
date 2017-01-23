@@ -1,5 +1,6 @@
 package top.dteam.dgate.config
 
+import io.vertx.circuitbreaker.CircuitBreakerOptions
 import io.vertx.core.http.HttpMethod
 
 class ApiGatewayRepository {
@@ -39,9 +40,10 @@ class ApiGatewayRepository {
         String host = body.host ?: '0.0.0.0'
         LoginConfig login = body.login ? buildLogin(body.login) : null
         CorsConfig cors = buildCors(body.cors)
+        CircuitBreakerOptions defaultCBOptions = buildCircuitBreaker(body.circuitBreaker)
         List<UrlConfig> urlConfigs = new ArrayList<>()
         body.urls.keySet().each { url ->
-            urlConfigs << buildUrl(url, body.urls[url])
+            urlConfigs << buildUrl(url, body.urls[url], defaultCBOptions)
         }
 
         new ApiGatewayConfig(
@@ -66,15 +68,25 @@ class ApiGatewayRepository {
         }
     }
 
-    private static UrlConfig buildUrl(def key, def body) {
+    private static CircuitBreakerOptions buildCircuitBreaker(Map circuitBreaker) {
+        new CircuitBreakerOptions()
+                .setMaxFailures(circuitBreaker?.maxFailures ?: 3)
+                .setTimeout(circuitBreaker?.timeout ?: 5000)
+                .setResetTimeout(circuitBreaker?.resetTimeout ?: 10000)
+    }
+
+    private static UrlConfig buildUrl(def key, def body, CircuitBreakerOptions cbOptions) {
         String url = key
         Object required = body.required ?: null
         List<HttpMethod> methods = body.methods ?: []
         Map expected = body.expected
         List<UpstreamURL> upstreamURLs = new ArrayList<>()
         body.upstreamURLs.each { upstreamURL ->
+            CircuitBreakerOptions cbOptionsForUpstreamURL =
+                    upstreamURL.circuitBreaker? buildCircuitBreaker(upstreamURL.circuitBreaker) : cbOptions
+
             upstreamURLs << new UpstreamURL(host: upstreamURL.host, port: upstreamURL.port, url: upstreamURL.url,
-                    before: upstreamURL.before, after: upstreamURL.after)
+                    before: upstreamURL.before, after: upstreamURL.after, cbOptions: cbOptionsForUpstreamURL)
         }
 
         new UrlConfig(url: url, required: required, methods: methods, expected: expected, upstreamURLs: upstreamURLs)
