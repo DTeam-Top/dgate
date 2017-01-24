@@ -39,7 +39,7 @@ dependencies {
     testCompile "org.spockframework:spock-core:${SPOCK_VER}"
 }
 
-version = '0.0.1'
+version = '0.1'
 
 shadowJar {
     classifier = 'fat'

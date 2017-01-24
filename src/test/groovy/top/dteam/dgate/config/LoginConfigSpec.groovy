@@ -11,6 +11,7 @@ class LoginConfigSpec extends Specification {
 
         then:
         loginConfig.login() == '/login'
+        loginConfig.refreshLimit() == LoginConfig.DEFAULT_REFRESH_LIMIT
         !loginConfig.ignore()
         !loginConfig.only()
     }
@@ -24,11 +25,15 @@ class LoginConfigSpec extends Specification {
         loginConfig.login() == config.url
         loginConfig.ignore() == (config.ignore ?: [])
         loginConfig.only() == (config.only ?: [])
+        loginConfig.refreshLimit() == (config.refreshLimit ?: LoginConfig.DEFAULT_REFRESH_LIMIT)
+        loginConfig.refreshExpire() == (config.refreshExpire ?: LoginConfig.DEFAULT_REFRESH_EXPIRE)
 
         where:
         config << [
                 [url: '/login1', ignore: ['/url1', '/url2']],
-                [url: '/login1', only: ['/url3']]
+                [url: '/login1', only: ['/url3']],
+                [url: '/login1', refreshLimit: 3000],
+                [url: '/login1', refreshExpire: 4000]
         ]
     }
 

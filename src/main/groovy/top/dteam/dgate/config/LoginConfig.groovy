@@ -5,6 +5,9 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class LoginConfig {
 
+    static long DEFAULT_REFRESH_LIMIT = 30 * 60
+    static long DEFAULT_REFRESH_EXPIRE = 30 * 60
+
     private String url
     private Map config
 
@@ -36,6 +39,14 @@ class LoginConfig {
 
     List<String> only() {
         (List<String>) (config?.only ?: [])
+    }
+
+    long refreshLimit() {
+        (long) (config?.refreshLimit ?: DEFAULT_REFRESH_LIMIT)
+    }
+
+    long refreshExpire() {
+        (long) (config?.refreshExpire ?: DEFAULT_REFRESH_EXPIRE)
     }
 
 }

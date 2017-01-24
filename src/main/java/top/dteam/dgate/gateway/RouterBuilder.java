@@ -12,7 +12,9 @@ import top.dteam.dgate.config.ApiGatewayConfig;
 import top.dteam.dgate.config.CorsConfig;
 import top.dteam.dgate.config.LoginConfig;
 import top.dteam.dgate.config.UrlConfig;
+import top.dteam.dgate.handler.JWTTokenRefreshHandler;
 import top.dteam.dgate.handler.RequestHandler;
+import top.dteam.dgate.utils.JWTTokenRefresher;
 import top.dteam.dgate.utils.Utils;
 
 import java.util.HashMap;
@@ -85,10 +87,14 @@ public class RouterBuilder {
     private static JWTAuth createAuthIfNeeded(Vertx vertx, Router router, LoginConfig login,
                                               List<UrlConfig> urlConfigs) {
         if (login != null) {
+
+            // this handler MUST BE the first handler if login is enabled !!!
+            createTokenFreshHandler(vertx, router, login);
+
             JWTAuth jwtAuth = Utils.createAuthProvider(vertx);
             JWTAuthHandler jwtAuthHandler = JWTAuthHandler.create(jwtAuth, login.login());
             if (login.only().isEmpty() && login.ignore().isEmpty()) {
-                router.route().handler(JWTAuthHandler.create(jwtAuth, login.login()));
+                router.route().handler(jwtAuthHandler);
             } else if (login.ignore().isEmpty()) {
                 login.only().forEach(url -> router.route(url).handler(jwtAuthHandler));
             } else if (login.only().isEmpty()) {
@@ -103,6 +109,12 @@ public class RouterBuilder {
         } else {
             return null;
         }
+    }
+
+    private static void createTokenFreshHandler(Vertx vertx, Router router, LoginConfig login) {
+        JWTTokenRefresher jwtTokenRefresher = new JWTTokenRefresher(vertx);
+        router.route(JWTTokenRefreshHandler.URL).handler(
+                new JWTTokenRefreshHandler(jwtTokenRefresher, login.refreshLimit(), login.refreshExpire()));
     }
 
     private static void addFailureHandler(Router router) {

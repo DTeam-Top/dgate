@@ -108,6 +108,8 @@ class ApiGatewayRepositorySpec extends Specification {
                 login {
                     url = '/login'
                     ignore = ['/pub']
+                    refreshLimit = 2000
+                    refreshExpire = 1000
                 }
                 urls {
                     "/login" {
@@ -137,6 +139,8 @@ class ApiGatewayRepositorySpec extends Specification {
             port == 7000
             name == 'apiGateway1'
             login.login() == '/login'
+            login.refreshLimit() == LoginConfig.DEFAULT_REFRESH_LIMIT
+            login.refreshExpire() == LoginConfig.DEFAULT_REFRESH_EXPIRE
             with(cors) {
                 allowedOriginPattern == "http://127.0.0.1"
                 allowedMethods == new HashSet<>([HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])
@@ -217,6 +221,8 @@ class ApiGatewayRepositorySpec extends Specification {
             login
             login.login() == '/login'
             login.ignore() == ['/pub']
+            login.refreshLimit() == 2000
+            login.refreshExpire() == 1000
             !login.only()
             !cors
             urlConfigs.size() == 2

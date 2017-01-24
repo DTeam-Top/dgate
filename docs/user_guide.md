@@ -205,7 +205,7 @@ after: { simpleResponse -> simpleResponse }
 }
 ~~~
 
-其中的**tokenGenerator**就是利用这个特性完成的，具体实现可以参见**LoginHandler**。
+其中的**tokenGenerator**就是利用这个特性完成的，具体实现可以参见**LoginHandler**。注意，上述代码中的2表示token的超时时间，单位为秒。
 
 ### url path parameters
 
@@ -361,6 +361,27 @@ apiGateway {
 既然login指向的是dgate暴露的url，那么当然也就是可以直接mock啦。
 
 注意：不要忘记payload本身是一个**闭包**！否则，无法模拟JWT Token过期后重新生成另一个Token的情况。
+
+### 刷新JWT Token
+
+dgate支持JWT Token的刷新，刷新用的url为：/token-refresh。它会从Request Header中取出JWT，解码，然后重新生成新的JWT。即，刷新JWT Token的前提是必须先获得dgate的JWT Token。
+
+刷新JWT Token的配置由login配置块决定。当login是一个url时，则使用缺省的刷新属性。刷新属性（单位：秒）包括：
+- refreshLimit，刷新时限，即对于一个超时的JWT Token，若距离当前时间小于这个值，则允许刷新。否则返回401。
+- refreshExpire，新生成的JWT Token的时限，一旦超过，则对应的JWT Token失效。
+
+若要自定义这两个值，则可按照如下定义：
+
+~~~
+login {
+    ……
+    refreshLimit = 30 * 60
+    refreshExpire = 30 * 60
+    ……
+}
+~~~
+
+若不指定，则使用缺省值。这两个值的缺省值都为：30分钟，即：30 * 60（秒）。
 
 ## CORS支持
 
