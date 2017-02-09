@@ -40,7 +40,7 @@ dgate的主要特性：
 - 支持URL Path Parameters
 - 支持JWT
 - 支持CORS
-- 灵活的login配置
+- 灵活的login配置（此时，在启动时需要先设置环境变量，请参见手册）
 - 支持断路器
 
 详细的用户指南请访问[这里](./docs/user_guide.md)。
