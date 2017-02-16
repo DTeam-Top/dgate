@@ -34,7 +34,7 @@ public class Utils {
     public static void fireJsonResponse(HttpServerResponse response, int statusCode, Map payload) {
         response.setStatusCode(statusCode);
         JsonObject jsonObject = new JsonObject(payload);
-        response.putHeader("content-type", "text/json; charset=utf-8").end(jsonObject.toString());
+        response.putHeader("content-type", "application/json; charset=utf-8").end(jsonObject.toString());
     }
 
     public static JWTAuth createAuthProvider(Vertx vertx) {

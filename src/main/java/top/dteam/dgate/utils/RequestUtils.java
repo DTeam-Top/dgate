@@ -30,14 +30,14 @@ public class RequestUtils {
 
     public void request(HttpMethod method, String host, int port, String url, JsonObject data, Handler<SimpleResponse> handler) {
         httpClient.request(method, port, host, url, defaultResponseHandler(handler))
-                .setChunked(true).putHeader("content-type", "text/json").end(data.toString());
+                .setChunked(true).putHeader("content-type", "application/json").end(data.toString());
     }
 
     public void requestWithJwtToken(HttpMethod method, String host, int port, String url, JsonObject data, String token,
                                     Handler<SimpleResponse> handler) {
         httpClient.request(method, port, host, url, defaultResponseHandler(handler))
                 .setChunked(true)
-                .putHeader("content-type", "text/json")
+                .putHeader("content-type", "application/json")
                 .putHeader("Authorization", String.format("Bearer %s", token))
                 .end(data.toString());
     }
