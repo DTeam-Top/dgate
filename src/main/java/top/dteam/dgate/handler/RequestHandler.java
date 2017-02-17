@@ -123,6 +123,8 @@ public abstract class RequestHandler implements Handler<RoutingContext> {
         if (routingContext.user() != null) {
             JsonObject token = routingContext.user().principal();
             body.put("token", token);
+        } else if (routingContext.get("token") != null) {
+            body.put("token", (JsonObject) routingContext.get("token"));
         }
     }
 

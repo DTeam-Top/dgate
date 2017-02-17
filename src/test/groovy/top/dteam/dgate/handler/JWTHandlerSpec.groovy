@@ -2,20 +2,29 @@ package top.dteam.dgate.handler
 
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
+import io.vertx.core.http.HttpServer
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.web.Router
+import spock.lang.Ignore
 import spock.lang.Specification
 import top.dteam.dgate.config.ApiGatewayRepository
 import top.dteam.dgate.gateway.ApiGateway
 import top.dteam.dgate.gateway.SimpleResponse
 import top.dteam.dgate.utils.RequestUtils
 import top.dteam.dgate.utils.TestUtils
+import top.dteam.dgate.utils.Utils
 
-class JWTTokenRefresherSpec extends Specification {
+class JWTHandlerSpec extends Specification {
 
     private final static long TIME_OUT = 5
 
+    // ["sub": "13572209183", "name": "foxgem", "role": "normal"]
+    private static
+    final String JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZm94Z2VtIiwic3ViIjoiMTM1NzIyMDkxODMiLCJyb2xlIjoibm9ybWFsIiwiZXhwIjoxNDg3MzQzOTU1LCJpYXQiOjE0ODczNDM5NTB9.UfZIcPJOuFtgbPHFPDXdb76Q9iZWJdBDSzbnP3zBl-0='
+
     Vertx vertx
     RequestUtils requestUtils
+    HttpServer dest
 
     String config = """
         import io.vertx.core.http.HttpMethod
@@ -27,6 +36,7 @@ class JWTTokenRefresherSpec extends Specification {
             port = 7000
             login {
                 url = "/login"
+                ignore = ['/public']
                 refreshLimit = ${TIME_OUT}
                 refreshExpire = ${TIME_OUT}
             }
@@ -49,6 +59,11 @@ class JWTTokenRefresherSpec extends Specification {
                         payload = [test: 'true']
                     }
                 }
+                "/public" {
+                    upstreamURLs = [
+                        [ host: 'localhost', port: 8082, url: '/normal' ]
+                    ]
+                }
             }
         }
     """
@@ -57,9 +72,11 @@ class JWTTokenRefresherSpec extends Specification {
         vertx = Vertx.vertx()
         deployGate()
         requestUtils = new RequestUtils(vertx)
+        dest = createDest()
     }
 
     void cleanup() {
+        dest.close()
         vertx.close()
     }
 
@@ -145,8 +162,42 @@ class JWTTokenRefresherSpec extends Specification {
         result.statusCode == 401
     }
 
+    def "should pass jwt token when Authorization header exists"() {
+        setup:
+        SimpleResponse result
+
+        when:
+        sleep(100)
+        requestUtils.requestWithJwtToken(HttpMethod.GET, "localhost", 7000, "/public", new JsonObject(), JWT) { simpleResponse ->
+            result = simpleResponse
+        }
+        TestUtils.waitResult(result, 1500)
+
+        then:
+        result.statusCode == 200
+        result.payload.map.params.token.sub == '13572209183'
+        result.payload.map.params.token.name == 'foxgem'
+        result.payload.map.params.token.role == 'normal'
+    }
+
     private void deployGate() {
         vertx.deployVerticle(new ApiGateway(ApiGatewayRepository.build(config)[0]))
+    }
+
+    private HttpServer createDest() {
+        HttpServer httpServer = vertx.createHttpServer()
+        Router router = Router.router(vertx)
+        httpServer.requestHandler(router.&accept).listen(8082)
+
+        router.route("/normal").handler { routingContext ->
+            routingContext.request().bodyHandler { totalBuffer ->
+                Utils.fireJsonResponse(routingContext.response(), 200,
+                        [method: routingContext.request().method(),
+                         params: totalBuffer.toJsonObject()])
+            }
+        }
+
+        httpServer
     }
 
 }

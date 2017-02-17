@@ -418,7 +418,7 @@ cors配置并非必需的，若没有，dgate不会支持CORS。CORS的配置项
 
 dgate会给每个发往后端服务的请求参数中添加若干参数，通过下面的key可以获得：
 - nameOfApiGateway，Api Gateway的名字，字符串。
-- token，已解码的jwt token，其类型是一个Map，内容依赖于在产生token时设置的值。如：在产生时包含[sub, name, role]这几个键值，则此处就获得这3个键值。若在产生时为[sub, name, role, other]，则此处就可以会有这4个键值。
+- token，已解码的jwt token，其类型是一个Map，内容依赖于在产生token时设置的值。如：在产生时包含[sub, name, role]这几个键值，则此处就获得这3个键值。若在产生时为[sub, name, role, other]，则此处就可以会有这4个键值。只要请求头中携带有dgate签发的jwt，每个发往后端服务的请求参数中就会有这个参数。
 
 注意：除了必需的几个属性，JWT Token中token本身是可以附加其他属性进来的。相当于将token本身作为信息的载体。
 

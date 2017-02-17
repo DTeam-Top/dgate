@@ -3,6 +3,8 @@ package top.dteam.dgate.utils;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemException;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.jwt.JWTAuth;
@@ -18,10 +20,13 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
+
+    private static final Pattern BEARER = Pattern.compile("^Bearer$", Pattern.CASE_INSENSITIVE);
 
     public static void fireSingleMessageResponse(HttpServerResponse response, int statusCode) {
         response.setStatusCode(statusCode).end();
@@ -76,4 +81,28 @@ public class Utils {
         }
     }
 
+    // extracted from JWTAuthHandlerImpl
+    public static String getTokenFromHeader(HttpServerRequest request) {
+        final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
+
+        if (authorization != null) {
+            String[] parts = authorization.split(" ");
+            if (parts.length == 2) {
+                final String scheme = parts[0],
+                        credentials = parts[1];
+
+                if (BEARER.matcher(scheme).matches()) {
+                    return credentials;
+                }
+            } else {
+                logger.warn("Format is Authorization: Bearer [token]");
+                return null;
+            }
+        } else {
+            logger.warn("No Authorization header was found");
+            return null;
+        }
+
+        return null;
+    }
 }

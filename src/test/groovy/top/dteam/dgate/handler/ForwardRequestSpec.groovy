@@ -191,7 +191,6 @@ class ForwardRequestSpec extends Specification {
         result.payload.toString() == new JsonObject([method: HttpMethod.GET, params: [id: '1']]).toString()
     }
 
-
     private HttpServer createGate() {
         HttpServer httpServer = vertx.createHttpServer()
         Router router = Router.router(vertx)

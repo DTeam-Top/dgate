@@ -13,6 +13,7 @@ import top.dteam.dgate.config.CorsConfig;
 import top.dteam.dgate.config.LoginConfig;
 import top.dteam.dgate.config.UrlConfig;
 import top.dteam.dgate.handler.JWTTokenRefreshHandler;
+import top.dteam.dgate.handler.JWTTokenSniffer;
 import top.dteam.dgate.handler.RequestHandler;
 import top.dteam.dgate.utils.JWTTokenRefresher;
 import top.dteam.dgate.utils.Utils;
@@ -30,6 +31,7 @@ public class RouterBuilder {
         Router router = Router.router(vertx);
         addCorsHandler(router, apiGatewayConfig);
         addBodyHandler(router);
+        addJWTTokenSniffer(vertx, router);
         addRequestHandlers(vertx, router, apiGatewayConfig);
         addFailureHandler(router);
         return router;
@@ -66,6 +68,10 @@ public class RouterBuilder {
 
     private static void addBodyHandler(Router router) {
         router.route().handler(BodyHandler.create());
+    }
+
+    private static void addJWTTokenSniffer(Vertx vertx, Router router) {
+        router.route().handler(new JWTTokenSniffer(Utils.createJWT(vertx)));
     }
 
     private static void addRequestHandlers(Vertx vertx, Router router, ApiGatewayConfig apiGatewayConfig) {
