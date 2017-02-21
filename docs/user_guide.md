@@ -461,3 +461,14 @@ apiGateway {
 }
 ……
 ~~~
+
+### 日志级别
+默认情况下，dgate本身的日志将以`DEBUG`级别输出，其他第三方类库将以`WARN`级别输出。可以通过设置`DGATE_LOG_LEVEL`这个`System property`或环境变量覆盖这个默认值。
+
+例如:
+
+```bash
+# 以下两种方式等效,如果同时设置，则system property优先使用
+java -DDGATE_LOG_LEVEL=WARN -jar dgate-0.1-fat.jar
+DGATE_LOG_LEVEL=WARN java -jar dgate-0.1-fat.jar
+```

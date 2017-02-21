@@ -25,7 +25,7 @@ appender("R", RollingFileAppender) {
 
 logger("io.vertx", Level.WARN)
 logger("io.netty", Level.WARN)
-logger("in ch.qos.logback", Level.WARN)
+logger("ch.qos.logback", Level.WARN)
 
 final String DGATE_LOG_LEVEL = System.getProperty("DGATE_LOG_LEVEL") ?:
         System.getenv("DGATE_LOG_LEVEL")
