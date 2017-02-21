@@ -1,30 +1,33 @@
-import ch.qos.logback.classic.PatternLayout
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.rolling.RollingFileAppender
-import ch.qos.logback.core.rolling.TimeBasedRollingPolicy
-
-import static ch.qos.logback.classic.Level.DEBUG
-import static ch.qos.logback.classic.Level.WARN
+import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
 
 appender("Console", ConsoleAppender) {
-    layout(PatternLayout) {
+    encoder(PatternLayoutEncoder) {
         pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     }
 }
 
 appender("R", RollingFileAppender) {
     file = "dgate.log"
-    rollingPolicy(TimeBasedRollingPolicy) {
-        fileNamePattern = "%d{yyyy-MM-dd}_dgate.log"
-        maxHistory = 7
-    }
-    layout(PatternLayout) {
+    encoder(PatternLayoutEncoder) {
         pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    }
+    rollingPolicy(SizeAndTimeBasedRollingPolicy) {
+        fileNamePattern = "dgate_%d{yyyy-MM-dd}.%i.log"
+        maxFileSize = "10MB"
+        maxHistory = 7
+        totalSizeCap = "500MB"
     }
 }
 
+logger("io.vertx", Level.WARN)
+logger("io.netty", Level.WARN)
+logger("in ch.qos.logback", Level.WARN)
 
-logger("io.vertx", WARN)
-logger("io.netty", WARN)
+final String DGATE_LOG_LEVEL = System.getProperty("DGATE_LOG_LEVEL") ?:
+        System.getenv("DGATE_LOG_LEVEL")
 
-root(DEBUG, ["Console", "R"])
+root(Level.valueOf(DGATE_LOG_LEVEL), ["Console", "R"])
