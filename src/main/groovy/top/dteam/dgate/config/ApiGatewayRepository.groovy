@@ -83,13 +83,16 @@ class ApiGatewayRepository {
         List<UpstreamURL> upstreamURLs = new ArrayList<>()
         body.upstreamURLs.each { upstreamURL ->
             CircuitBreakerOptions cbOptionsForUpstreamURL =
-                    upstreamURL.circuitBreaker? buildCircuitBreaker(upstreamURL.circuitBreaker) : cbOptions
+                    upstreamURL.circuitBreaker ? buildCircuitBreaker(upstreamURL.circuitBreaker) : cbOptions
 
             upstreamURLs << new UpstreamURL(host: upstreamURL.host, port: upstreamURL.port, url: upstreamURL.url,
                     before: upstreamURL.before, after: upstreamURL.after, cbOptions: cbOptionsForUpstreamURL)
         }
 
-        new UrlConfig(url: url, required: required, methods: methods, expected: expected, upstreamURLs: upstreamURLs)
+        RelayTo relayTo = new RelayTo(body.relayTo)
+
+        new UrlConfig(url: url, required: required, methods: methods, expected: expected
+                , upstreamURLs: upstreamURLs, relayTo: relayTo)
     }
 
 }

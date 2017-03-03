@@ -11,7 +11,6 @@ public class JWTTokenSniffer implements Handler<RoutingContext> {
 
     private static final Logger logger = LoggerFactory.getLogger(JWTTokenSniffer.class);
 
-
     private JWT jwt;
 
     public JWTTokenSniffer(JWT jwt) {

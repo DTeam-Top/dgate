@@ -124,6 +124,12 @@ class ApiGatewayRepositorySpec extends Specification {
                             payload = [test: true]
                         }
                     }
+                    "/relayURL" {
+                        relayTo {
+                            host = 'localhost'
+                            port = 8080
+                        }
+                    }
                 }
             }
         """
@@ -225,7 +231,10 @@ class ApiGatewayRepositorySpec extends Specification {
             login.refreshExpire() == 1000
             !login.only()
             !cors
-            urlConfigs.size() == 2
+            urlConfigs.size() == 3
+            urlConfigs[2].relayTo.host == 'localhost'
+            urlConfigs[2].relayTo.port == 8080
+            !urlConfigs[2].relayTo.cbOptions
         }
     }
 

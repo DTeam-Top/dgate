@@ -12,9 +12,9 @@ import top.dteam.dgate.config.ApiGatewayConfig;
 import top.dteam.dgate.config.CorsConfig;
 import top.dteam.dgate.config.LoginConfig;
 import top.dteam.dgate.config.UrlConfig;
+import top.dteam.dgate.handler.GatewayRequestHandler;
 import top.dteam.dgate.handler.JWTTokenRefreshHandler;
 import top.dteam.dgate.handler.JWTTokenSniffer;
-import top.dteam.dgate.handler.RequestHandler;
 import top.dteam.dgate.utils.JWTTokenRefresher;
 import top.dteam.dgate.utils.Utils;
 
@@ -30,7 +30,7 @@ public class RouterBuilder {
     public static Router builder(Vertx vertx, ApiGatewayConfig apiGatewayConfig) {
         Router router = Router.router(vertx);
         addCorsHandler(router, apiGatewayConfig);
-        addBodyHandler(router);
+        addBodyHandlerExceptRelayTo(router, apiGatewayConfig);
         addJWTTokenSniffer(vertx, router);
         addRequestHandlers(vertx, router, apiGatewayConfig);
         addFailureHandler(router);
@@ -66,8 +66,12 @@ public class RouterBuilder {
         }
     }
 
-    private static void addBodyHandler(Router router) {
-        router.route().handler(BodyHandler.create());
+    private static void addBodyHandlerExceptRelayTo(Router router, ApiGatewayConfig apiGatewayConfig) {
+        apiGatewayConfig.getUrlConfigs().forEach(urlConfig -> {
+            if (urlConfig.getRelayTo() == null) {
+                router.route(urlConfig.getUrl()).handler(BodyHandler.create());
+            }
+        });
     }
 
     private static void addJWTTokenSniffer(Vertx vertx, Router router) {
@@ -81,10 +85,10 @@ public class RouterBuilder {
 
         urlConfigs.forEach(urlConfig -> {
             if (login != null && urlConfig.getUrl().equals(login.login())) {
-                router.route(urlConfig.getUrl()).handler(RequestHandler.create(vertx, urlConfig, auth)
+                router.route(urlConfig.getUrl()).handler(GatewayRequestHandler.create(vertx, urlConfig, auth)
                         .nameOfApiGateway(apiGatewayConfig.getName()));
             } else {
-                router.route(urlConfig.getUrl()).handler(RequestHandler.create(vertx, urlConfig, null)
+                router.route(urlConfig.getUrl()).handler(GatewayRequestHandler.create(vertx, urlConfig, null)
                         .nameOfApiGateway(apiGatewayConfig.getName()));
             }
         });
@@ -105,10 +109,7 @@ public class RouterBuilder {
                 login.only().forEach(url -> router.route(url).handler(jwtAuthHandler));
             } else if (login.only().isEmpty()) {
                 List<String> allUrls = urlConfigs.stream().map(config -> config.getUrl()).collect(Collectors.toList());
-                allUrls.removeAll(login.ignore());
-                allUrls.remove(login.login());
-
-                allUrls.forEach(url -> router.route(url).handler(jwtAuthHandler));
+                Utils.addHandlerExcept(allUrls, login.ignore(), router, jwtAuthHandler);
             }
 
             return jwtAuth;
@@ -131,9 +132,8 @@ public class RouterBuilder {
 
             int statusCode = routingContext.statusCode() == -1 ? 500 : routingContext.statusCode();
 
-            logger.error("Got [{}] during processing [{}], status code: {}", routingContext.response().getStatusMessage(),
-                    routingContext.request().absoluteURI(), statusCode);
-
+            logger.error("Got [{}] during processing [{}], status code: {}",
+                    routingContext.response().getStatusMessage(), routingContext.request().absoluteURI(), statusCode);
             Map<String, String> payload = new HashMap<>();
             payload.put("error", routingContext.response().getStatusMessage());
             Utils.fireJsonResponse(routingContext.response(), statusCode, payload);

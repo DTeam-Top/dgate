@@ -1,5 +1,6 @@
 package top.dteam.dgate.utils;
 
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystemException;
@@ -9,6 +10,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.impl.JWT;
+import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +21,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -104,5 +107,10 @@ public class Utils {
         }
 
         return null;
+    }
+
+    public static void addHandlerExcept(List<String> all, List<String> ignore, Router router, Handler handler) {
+        all.removeAll(ignore);
+        all.forEach(url -> router.route(url).handler(handler));
     }
 }

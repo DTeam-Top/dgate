@@ -4,5 +4,4 @@ build
 *.tmp
 *.jceks
 .*
-file-uploads
 !.gitignore

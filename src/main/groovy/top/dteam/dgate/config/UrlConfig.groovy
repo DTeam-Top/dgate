@@ -10,12 +10,14 @@ class UrlConfig {
 
     public static final int PROXY = 0
     public static final int MOCK = 1
+    public static final int RELAY = 2
 
     String url
     List<UpstreamURL> upstreamURLs
     Object required
     List<HttpMethod> methods
     Map expected
+    RelayTo relayTo
 
     boolean validate() {
         if ((upstreamURLs && expected) || (!upstreamURLs && !expected)) {
@@ -31,6 +33,8 @@ class UrlConfig {
             MOCK
         } else if (upstreamURLs) {
             PROXY
+        } else if (relayTo) {
+            RELAY
         } else {
             -1
         }

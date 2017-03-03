@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class RequestHandler implements Handler<RoutingContext> {
+public abstract class RequestHandler implements GatewayRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
@@ -28,20 +28,22 @@ public abstract class RequestHandler implements Handler<RoutingContext> {
     protected UrlConfig urlConfig;
     protected String nameOfApiGateway;
 
-    public static RequestHandler create(Vertx vertx, UrlConfig urlConfig, JWTAuth jwtAuth) {
-        int requestHandlerType = urlConfig.requestHandlerType();
-        if (requestHandlerType == UrlConfig.PROXY) {
-            if (jwtAuth == null) {
-                return new ProxyHandler(vertx, urlConfig);
-            } else {
-                return new LoginHandler(vertx, urlConfig, jwtAuth);
-            }
-        } else if (requestHandlerType == UrlConfig.MOCK) {
-            return new MockHandler(vertx, urlConfig);
-        } else {
-            return null;
-        }
-    }
+//    public static GatewayRequestHandler create(Vertx vertx, UrlConfig urlConfig, JWTAuth jwtAuth) {
+//        int requestHandlerType = urlConfig.requestHandlerType();
+//        if (requestHandlerType == UrlConfig.PROXY) {
+//            if (jwtAuth == null) {
+//                return new ProxyHandler(vertx, urlConfig);
+//            } else {
+//                return new LoginHandler(vertx, urlConfig, jwtAuth);
+//            }
+//        } else if (requestHandlerType == UrlConfig.MOCK) {
+//            return new MockHandler(vertx, urlConfig);
+//        } else if (requestHandlerType == UrlConfig.RELAY) {
+//            return new RelayHandler(vertx, urlConfig);
+//        } else {
+//            return null;
+//        }
+//    }
 
     protected RequestHandler(Vertx vertx, UrlConfig urlConfig) {
         this.vertx = vertx;
@@ -67,7 +69,7 @@ public abstract class RequestHandler implements Handler<RoutingContext> {
         return urlConfig.getMethods();
     }
 
-    public RequestHandler nameOfApiGateway(String nameOfApiGateway) {
+    public GatewayRequestHandler nameOfApiGateway(String nameOfApiGateway) {
         this.nameOfApiGateway = nameOfApiGateway;
         return this;
     }
