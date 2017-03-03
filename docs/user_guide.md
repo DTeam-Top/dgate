@@ -99,6 +99,7 @@ url {
     methods  //支持的HTTP Method
     upstreamURLs { 上游URL列表（UpStreamURL） }
     expected //期望返回值
+    relayTo //透传请求到后端
 }
 ~~~
 
@@ -261,6 +262,25 @@ UpStreamURL除了支持一般的url格式，还支持url path parameters，格�
 
 即对于每一种HTTP method，都有各自响应体，每个响应体的格式都是由statusCode和payload组成。
 
+## 透传请求（Relay请求）
+
+有时，期望前端的请求只是从dgate穿堂而过，不做任何修改，如下面两类请求：
+- FORM表单
+- FileUpload
+
+这就是relay请求发挥作用的地方，在实际中，凡事注明是relayTo的url，dgate会将源request完整不动的发到后端，包括它的request header。它的配置如下：
+
+~~~
+"/relayAnotherURL" {
+    relayTo {
+        host = 'localhost'
+        port = 8081
+    }
+}
+~~~
+
+对于relay请求，不需要指定后端url，只需指定主机名和端口即可。这也正是透传的含义：除了位置不同，其余都一样，这样也可以方便老旧程序快速和dgate集成。但需注意：relay请求不支持before/after闭包。
+
 ## 安全
 
 dgate支持JWT Token来认证每个访问层请求，当配置中出现login时，安全机制即被触发。
@@ -416,11 +436,13 @@ cors配置并非必需的，若没有，dgate不会支持CORS。CORS的配置项
 
 ## 每个请求的附加参数
 
-dgate会给每个发往后端服务的请求参数中添加若干参数，通过下面的key可以获得：
-- nameOfApiGateway，Api Gateway的名字，字符串。
-- token，已解码的jwt token，其类型是一个Map，内容依赖于在产生token时设置的值。如：在产生时包含[sub, name, role]这几个键值，则此处就获得这3个键值。若在产生时为[sub, name, role, other]，则此处就可以会有这4个键值。只要请求头中携带有dgate签发的jwt，每个发往后端服务的请求参数中就会有这个参数。
+dgate会给每个发往后端服务的请求头中添加若干参数，通过下面的key可以获得：
+- dgate-gateway，Api Gateway的名字，字符串。
+- dgate-jwt-token，已解码的jwt token json字符串，内容依赖于在产生token时设置的值。如：在产生时包含[sub, name, role]这几个键值，则此处就获得这3个键值。若在产生时为[sub, name, role, other]，则此处就可以会有这4个键值。只要请求头中携带有dgate签发的jwt，每个发往后端服务的请求参数中就会有这个参数。
 
 注意：除了必需的几个属性，JWT Token中token本身是可以附加其他属性进来的。相当于将token本身作为信息的载体。
+
+这些头都是以BASE64编码放入的，故取出时需要用BASE64解码。
 
 ## 断路器设置
 

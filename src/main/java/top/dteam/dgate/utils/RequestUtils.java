@@ -19,8 +19,8 @@ import java.util.Map;
 
 public class RequestUtils {
 
-    public static final String JWT_HEADER = "dagte-jwt-token";
-    public static final String API_GATEWAY_NAME_HEADER = "dagte-gateway";
+    public static final String JWT_HEADER = "dgate-jwt-token";
+    public static final String API_GATEWAY_NAME_HEADER = "dgate-gateway";
 
     private static final Logger logger = LoggerFactory.getLogger(RequestUtils.class);
 
