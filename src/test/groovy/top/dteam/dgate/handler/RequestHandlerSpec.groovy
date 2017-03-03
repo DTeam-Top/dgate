@@ -1,15 +1,15 @@
 package top.dteam.dgate.handler
 
-import top.dteam.dgate.config.UrlConfig
-import top.dteam.dgate.utils.TestUtils
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServer
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import spock.lang.Specification
 import spock.lang.Unroll
+import top.dteam.dgate.config.MockUrlConfig
 import top.dteam.dgate.gateway.SimpleResponse
 import top.dteam.dgate.utils.RequestUtils
+import top.dteam.dgate.utils.TestUtils
 
 class RequestHandlerSpec extends Specification {
 
@@ -88,9 +88,9 @@ class RequestHandlerSpec extends Specification {
         httpServer.requestHandler(router.&accept).listen(8081)
 
         router.route("/required-list").handler(new MockHandler(vertx,
-                new UrlConfig(required: ['param1', 'param2'], expected: [statusCode: 200, payload: [method: 'all']])))
+                new MockUrlConfig(required: ['param1', 'param2'], expected: [statusCode: 200, payload: [method: 'all']])))
         router.route("/required-map").handler(new MockHandler(vertx,
-                new UrlConfig(required: [get: ['param1'], post: ['param2'], delete: ['param3']],
+                new MockUrlConfig(required: [get: ['param1'], post: ['param2'], delete: ['param3']],
                         expected: [statusCode: 200, payload: [method: 'all']])))
 
         httpServer

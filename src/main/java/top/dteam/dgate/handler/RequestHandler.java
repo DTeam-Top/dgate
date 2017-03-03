@@ -1,6 +1,5 @@
 package top.dteam.dgate.handler;
 
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -8,7 +7,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,23 +25,6 @@ public abstract class RequestHandler implements GatewayRequestHandler {
     protected Vertx vertx;
     protected UrlConfig urlConfig;
     protected String nameOfApiGateway;
-
-//    public static GatewayRequestHandler create(Vertx vertx, UrlConfig urlConfig, JWTAuth jwtAuth) {
-//        int requestHandlerType = urlConfig.requestHandlerType();
-//        if (requestHandlerType == UrlConfig.PROXY) {
-//            if (jwtAuth == null) {
-//                return new ProxyHandler(vertx, urlConfig);
-//            } else {
-//                return new LoginHandler(vertx, urlConfig, jwtAuth);
-//            }
-//        } else if (requestHandlerType == UrlConfig.MOCK) {
-//            return new MockHandler(vertx, urlConfig);
-//        } else if (requestHandlerType == UrlConfig.RELAY) {
-//            return new RelayHandler(vertx, urlConfig);
-//        } else {
-//            return null;
-//        }
-//    }
 
     protected RequestHandler(Vertx vertx, UrlConfig urlConfig) {
         this.vertx = vertx;

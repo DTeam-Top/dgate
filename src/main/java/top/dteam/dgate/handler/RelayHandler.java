@@ -6,7 +6,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.streams.Pump;
 import io.vertx.ext.web.RoutingContext;
 import top.dteam.dgate.config.RelayTo;
-import top.dteam.dgate.config.UrlConfig;
+import top.dteam.dgate.config.RelayUrlConfig;
 import top.dteam.dgate.utils.RequestUtils;
 import top.dteam.dgate.utils.Utils;
 
@@ -17,7 +17,7 @@ public class RelayHandler implements GatewayRequestHandler {
     private String nameOfApiGateway;
     private RequestUtils requestUtils;
 
-    public RelayHandler(Vertx vertx, UrlConfig urlConfig) {
+    public RelayHandler(Vertx vertx, RelayUrlConfig urlConfig) {
         this.vertx = vertx;
         this.relayTo = urlConfig.getRelayTo();
         this.requestUtils = new RequestUtils(vertx);

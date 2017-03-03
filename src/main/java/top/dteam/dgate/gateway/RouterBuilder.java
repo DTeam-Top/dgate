@@ -8,10 +8,7 @@ import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import top.dteam.dgate.config.ApiGatewayConfig;
-import top.dteam.dgate.config.CorsConfig;
-import top.dteam.dgate.config.LoginConfig;
-import top.dteam.dgate.config.UrlConfig;
+import top.dteam.dgate.config.*;
 import top.dteam.dgate.handler.GatewayRequestHandler;
 import top.dteam.dgate.handler.JWTTokenRefreshHandler;
 import top.dteam.dgate.handler.JWTTokenSniffer;
@@ -68,7 +65,7 @@ public class RouterBuilder {
 
     private static void addBodyHandlerExceptRelayTo(Router router, ApiGatewayConfig apiGatewayConfig) {
         apiGatewayConfig.getUrlConfigs().forEach(urlConfig -> {
-            if (urlConfig.getRelayTo() == null) {
+            if (urlConfig.getClass() != RelayUrlConfig.class) {
                 router.route(urlConfig.getUrl()).handler(BodyHandler.create());
             }
         });

@@ -1,11 +1,5 @@
 package top.dteam.dgate.handler
 
-import top.dteam.dgate.config.UpstreamURL
-import top.dteam.dgate.config.UrlConfig
-import top.dteam.dgate.gateway.SimpleResponse
-import top.dteam.dgate.utils.RequestUtils
-import top.dteam.dgate.utils.TestUtils
-import top.dteam.dgate.utils.Utils
 import io.vertx.circuitbreaker.CircuitBreakerOptions
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
@@ -14,6 +8,13 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import spock.lang.Specification
 import spock.lang.Unroll
+import top.dteam.dgate.config.ProxyUrlConfig
+import top.dteam.dgate.config.UpstreamURL
+import top.dteam.dgate.config.UrlConfig
+import top.dteam.dgate.gateway.SimpleResponse
+import top.dteam.dgate.utils.RequestUtils
+import top.dteam.dgate.utils.TestUtils
+import top.dteam.dgate.utils.Utils
 
 class CompositeRequestSpec extends Specification {
 
@@ -115,7 +116,7 @@ class CompositeRequestSpec extends Specification {
         httpServer.requestHandler(router.&accept).listen(8081)
 
         router.route("/allSuccess").handler(new ProxyHandler(vertx,
-                new UrlConfig(
+                new ProxyUrlConfig(
                         upstreamURLs: Arrays.asList(
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/success1",
                                         cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
@@ -126,7 +127,7 @@ class CompositeRequestSpec extends Specification {
                         )
                 )))
         router.route("/allFailure").handler(new ProxyHandler(vertx,
-                new UrlConfig(
+                new ProxyUrlConfig(
                         upstreamURLs: Arrays.asList(
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/failure1",
                                         cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
@@ -137,7 +138,7 @@ class CompositeRequestSpec extends Specification {
                         )
                 )))
         router.route("/partialSuccess").handler(new ProxyHandler(vertx,
-                new UrlConfig(
+                new ProxyUrlConfig(
                         upstreamURLs: Arrays.asList(
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/failure1",
                                         cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
@@ -148,7 +149,7 @@ class CompositeRequestSpec extends Specification {
                         )
                 )))
         router.route("/checkHandlerContext").handler(new SubProxyHandler(vertx,
-                new UrlConfig(
+                new ProxyUrlConfig(
                         upstreamURLs: Arrays.asList(
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/success1", before: { params ->
                                     params.put("before", paramForBefore)

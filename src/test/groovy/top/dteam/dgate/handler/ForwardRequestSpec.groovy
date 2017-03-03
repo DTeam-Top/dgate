@@ -1,7 +1,5 @@
 package top.dteam.dgate.handler
 
-import top.dteam.dgate.config.UrlConfig
-import top.dteam.dgate.utils.TestUtils
 import io.vertx.circuitbreaker.CircuitBreakerOptions
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
@@ -10,9 +8,11 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import spock.lang.Specification
 import spock.lang.Unroll
+import top.dteam.dgate.config.ProxyUrlConfig
 import top.dteam.dgate.config.UpstreamURL
 import top.dteam.dgate.gateway.SimpleResponse
 import top.dteam.dgate.utils.RequestUtils
+import top.dteam.dgate.utils.TestUtils
 import top.dteam.dgate.utils.Utils
 
 class ForwardRequestSpec extends Specification {
@@ -197,17 +197,17 @@ class ForwardRequestSpec extends Specification {
         httpServer.requestHandler(router.&accept).listen(8081)
 
         router.route("/withoutHandler").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/normal",
+                new ProxyUrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/normal",
                         cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
                         methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/timeout").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/timeout",
+                new ProxyUrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/timeout",
                         cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
                         methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/withHandler").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [
+                new ProxyUrlConfig(upstreamURLs: [
                         new UpstreamURL(host: "localhost", port: 8082, url: "/normal",
                                 before: { jsonObject ->
                                     jsonObject.put('addedByBefore', 'addedByBefore')
@@ -221,17 +221,17 @@ class ForwardRequestSpec extends Specification {
                                         .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
                         methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/unknown").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/unknown",
+                new ProxyUrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/unknown",
                         cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
                         methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/url-template").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/url-template/:x/:y?/:z?",
+                new ProxyUrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/url-template/:x/:y?/:z?",
                         cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))],
                         methods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE])))
         router.route("/path-params/:id").handler(new ProxyHandler(vertx,
-                new UrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/normal",
+                new ProxyUrlConfig(upstreamURLs: [new UpstreamURL(host: "localhost", port: 8082, url: "/normal",
                         cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))])))
         httpServer

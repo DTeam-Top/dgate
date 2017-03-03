@@ -8,7 +8,7 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import spock.lang.Specification
 import top.dteam.dgate.config.ApiGatewayConfig
-import top.dteam.dgate.config.UrlConfig
+import top.dteam.dgate.config.RelayUrlConfig
 import top.dteam.dgate.gateway.ApiGateway
 import top.dteam.dgate.gateway.SimpleResponse
 import top.dteam.dgate.utils.RequestUtils
@@ -95,8 +95,8 @@ class RelayHandlerSpec extends Specification {
                 name: 'testGateway',
                 port: 8080,
                 urlConfigs: [
-                        new UrlConfig(url: "/uploadOne", relayTo: [host: 'localhost', port: 8081]),
-                        new UrlConfig(url: "/form", relayTo: [host: 'localhost', port: 8081])
+                        new RelayUrlConfig(url: "/uploadOne", relayTo: [host: 'localhost', port: 8081]),
+                        new RelayUrlConfig(url: "/form", relayTo: [host: 'localhost', port: 8081])
                 ]
         )
     }

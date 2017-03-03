@@ -9,8 +9,8 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.dteam.dgate.config.ProxyUrlConfig;
 import top.dteam.dgate.config.UpstreamURL;
-import top.dteam.dgate.config.UrlConfig;
 import top.dteam.dgate.gateway.SimpleResponse;
 import top.dteam.dgate.utils.RequestUtils;
 import top.dteam.dgate.utils.Utils;
@@ -30,7 +30,7 @@ public class ProxyHandler extends RequestHandler {
     private Map<String, CircuitBreaker> circuitBreakers;
     private RequestUtils requestUtils;
 
-    public ProxyHandler(Vertx vertx, UrlConfig urlConfig) {
+    public ProxyHandler(Vertx vertx, ProxyUrlConfig urlConfig) {
         super(vertx, urlConfig);
 
         upstreamURLs = urlConfig.getUpstreamURLs();

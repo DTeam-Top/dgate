@@ -6,7 +6,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import spock.lang.Specification
 import spock.lang.Unroll
-import top.dteam.dgate.config.UrlConfig
+import top.dteam.dgate.config.MockUrlConfig
 import top.dteam.dgate.gateway.SimpleResponse
 import top.dteam.dgate.utils.RequestUtils
 import top.dteam.dgate.utils.TestUtils
@@ -73,10 +73,10 @@ class MockHandlerSpec extends Specification {
 
         router.route("/mock").handler(
                 new MockHandler(vertx,
-                        new UrlConfig(required: null, expected: [statusCode: 200, payload: [method: 'all']])))
+                        new MockUrlConfig(required: null, expected: [statusCode: 200, payload: [method: 'all']])))
         router.route("/mock-methods").handler(
                 new MockHandler(vertx,
-                        new UrlConfig(required: null,
+                        new MockUrlConfig(required: null,
                                 expected: [get   : [statusCode: { 200 }, payload: [method: 'get']],
                                            post  : [statusCode: 200, payload: [method: 'post']],
                                            delete: [statusCode: 200, payload: { [method: 'delete'] }]])))

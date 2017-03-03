@@ -1,17 +1,17 @@
 package top.dteam.dgate.handler
 
-import top.dteam.dgate.config.UrlConfig
-import top.dteam.dgate.utils.Utils
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServerRequest
 import io.vertx.core.http.HttpServerResponse
 import io.vertx.core.json.JsonObject
+import top.dteam.dgate.config.MockUrlConfig
+import top.dteam.dgate.utils.Utils
 
 class MockHandler extends RequestHandler {
 
     private Map expectedResponse
 
-    MockHandler(Vertx vertx, UrlConfig urlConfig) {
+    MockHandler(Vertx vertx, MockUrlConfig urlConfig) {
         super(vertx, urlConfig)
         this.expectedResponse = urlConfig.expected
     }

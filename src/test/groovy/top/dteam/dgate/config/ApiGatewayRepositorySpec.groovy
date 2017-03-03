@@ -183,7 +183,6 @@ class ApiGatewayRepositorySpec extends Specification {
                 upstreamURLs[0].before(jsonObject) == jsonObject
                 upstreamURLs[0].after
                 upstreamURLs[0].after(simpleResponse) == simpleResponse
-                !expected
                 upstreamURLs[0].cbOptions
             }
             with(urlConfigs[3]) {
@@ -200,7 +199,6 @@ class ApiGatewayRepositorySpec extends Specification {
                 !upstreamURLs[1].before
                 !upstreamURLs[1].after
                 upstreamURLs[1].cbOptions
-                !expected
             }
         }
         with(repository[1]) {

@@ -8,10 +8,7 @@ import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.Router
 import spock.lang.Specification
 import spock.lang.Unroll
-import top.dteam.dgate.config.ApiGatewayConfig
-import top.dteam.dgate.config.LoginConfig
-import top.dteam.dgate.config.UpstreamURL
-import top.dteam.dgate.config.UrlConfig
+import top.dteam.dgate.config.*
 import top.dteam.dgate.utils.JWTTokenGenerator
 import top.dteam.dgate.utils.RequestUtils
 import top.dteam.dgate.utils.TestUtils
@@ -157,21 +154,21 @@ class ApiGatewaySpec extends Specification {
         new ApiGatewayConfig(
                 name: 'testGateway',
                 port: GATEWAY_PORT,
-                urlConfigs: [new UrlConfig(url: "/mock", expected: [statusCode: 200,
-                                                                    payload   : [
-                                                                            eqLocations       : [],
-                                                                            opRateInLast30Days: [],
-                                                                            myOrgs            : [
-                                                                                    [
-                                                                                            "name" : "org1",
-                                                                                            "admin": false
-                                                                                    ]
-                                                                            ]
-                                                                    ]]),
-                             new UrlConfig(url: "/mock-get", expected: [get: [statusCode: 200, payload: [method: 'get']]]),
-                             new UrlConfig(url: "/forward", upstreamURLs: [
+                urlConfigs: [new MockUrlConfig(url: "/mock", expected: [statusCode: 200,
+                                                                        payload   : [
+                                                                                eqLocations       : [],
+                                                                                opRateInLast30Days: [],
+                                                                                myOrgs            : [
+                                                                                        [
+                                                                                                "name" : "org1",
+                                                                                                "admin": false
+                                                                                        ]
+                                                                                ]
+                                                                        ]]),
+                             new MockUrlConfig(url: "/mock-get", expected: [get: [statusCode: 200, payload: [method: 'get']]]),
+                             new ProxyUrlConfig(url: "/forward", upstreamURLs: [
                                      new UpstreamURL(host: "localhost", port: 8082, url: "/test1")]),
-                             new UrlConfig(url: "/composite", upstreamURLs: [
+                             new ProxyUrlConfig(url: "/composite", upstreamURLs: [
                                      new UpstreamURL(host: "localhost", port: 8082, url: "/test1"),
                                      new UpstreamURL(host: "localhost", port: 8082, url: "/test2")])]
         )
@@ -182,7 +179,7 @@ class ApiGatewaySpec extends Specification {
                 name: 'testGateway',
                 port: GATEWAY_PORT_WITH_LOGIN,
                 login: new LoginConfig('/login'),
-                urlConfigs: [new UrlConfig(url: "/login",
+                urlConfigs: [new MockUrlConfig(url: "/login",
                         expected: [statusCode: 200,
                                    payload   : {
                                        JWTAuth jwtAuth = Utils.createAuthProvider(vertx)
@@ -199,11 +196,11 @@ class ApiGatewaySpec extends Specification {
                 name: 'testGateway',
                 port: GATEWAY_PORT_WITH_LOGIN_IGNORE,
                 login: new LoginConfig([url: '/login', ignore: ['/mock-ignore']]),
-                urlConfigs: [new UrlConfig(url: "/mock-ignore", expected: [statusCode: 200,
-                                                                           payload   : [ignore: true]]),
-                             new UrlConfig(url: "/mock", expected: [statusCode: 200,
-                                                                    payload   : [ignore: false]]),
-                             new UrlConfig(url: "/login",
+                urlConfigs: [new MockUrlConfig(url: "/mock-ignore", expected: [statusCode: 200,
+                                                                               payload   : [ignore: true]]),
+                             new MockUrlConfig(url: "/mock", expected: [statusCode: 200,
+                                                                        payload   : [ignore: false]]),
+                             new MockUrlConfig(url: "/login",
                                      expected: [statusCode: 200,
                                                 payload   : {
                                                     JWTAuth jwtAuth = Utils.createAuthProvider(vertx)
@@ -220,7 +217,7 @@ class ApiGatewaySpec extends Specification {
                 name: 'testGateway',
                 port: GATEWAY_PORT_WITH_LOGIN_ONLY,
                 login: new LoginConfig([url: '/login', only: ['/mock-only']]),
-                urlConfigs: [new UrlConfig(url: "/login",
+                urlConfigs: [new MockUrlConfig(url: "/login",
                         expected: [statusCode: 200,
                                    payload   : {
                                        JWTAuth jwtAuth = Utils.createAuthProvider(vertx)
@@ -228,10 +225,10 @@ class ApiGatewaySpec extends Specification {
                                        [token: tokenGenerator.token(["sub" : "13572209183", "name": "foxgem",
                                                                      "role": "normal"], 200)]
                                    }()]),
-                             new UrlConfig(url: "/mock-only", expected: [statusCode: 200,
-                                                                         payload   : [only: true]]),
-                             new UrlConfig(url: "/mock", expected: [statusCode: 200,
-                                                                    payload   : [only: false]]),
+                             new MockUrlConfig(url: "/mock-only", expected: [statusCode: 200,
+                                                                             payload   : [only: true]]),
+                             new MockUrlConfig(url: "/mock", expected: [statusCode: 200,
+                                                                        payload   : [only: false]]),
                 ]
         )
     }

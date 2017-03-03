@@ -91,8 +91,16 @@ class ApiGatewayRepository {
 
         RelayTo relayTo = new RelayTo(body.relayTo)
 
-        new UrlConfig(url: url, required: required, methods: methods, expected: expected
-                , upstreamURLs: upstreamURLs, relayTo: relayTo)
+        if (expected) {
+            return new MockUrlConfig(url: url, required: required, methods: methods, expected: expected)
+        } else if (upstreamURLs) {
+            return new ProxyUrlConfig(url: url, required: required, methods: methods, upstreamURLs: upstreamURLs)
+        } else if (relayTo) {
+            return new RelayUrlConfig(url: url, relayTo: relayTo)
+        } else {
+            throw new InvalidConfiguriationException('Unknown URL type!')
+        }
+
     }
 
 }
