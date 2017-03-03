@@ -15,6 +15,8 @@ import top.dteam.dgate.gateway.SimpleResponse;
 import top.dteam.dgate.utils.RequestUtils;
 import top.dteam.dgate.utils.Utils;
 
+import java.util.Base64;
+
 public class RelayHandler implements GatewayRequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RelayHandler.class);
@@ -43,6 +45,10 @@ public class RelayHandler implements GatewayRequestHandler {
                         , simpleResponse -> future.complete(simpleResponse));
 
                 relay.headers().addAll(request.headers());
+
+                putJwtTokenInHeader(relay, routingContext);
+                putNameOfApiGatewayInBody(relay, nameOfApiGateway);
+
                 Pump pump = Pump.pump(request, relay);
                 request.endHandler(Void -> relay.end());
                 pump.start();
@@ -74,5 +80,25 @@ public class RelayHandler implements GatewayRequestHandler {
     public GatewayRequestHandler nameOfApiGateway(String nameOfApiGateway) {
         this.nameOfApiGateway = nameOfApiGateway;
         return this;
+    }
+
+    private void putJwtTokenInHeader(HttpClientRequest request, RoutingContext routingContext) {
+        JsonObject token = null;
+        if (routingContext.user() != null) {
+            token = routingContext.user().principal();
+        } else if (routingContext.get("token") != null) {
+            token = (JsonObject) routingContext.get("token");
+        }
+
+        if (token != null) {
+            request.putHeader(RequestUtils.JWT_HEADER, Base64.getEncoder().encodeToString(token.toString().getBytes()));
+        }
+    }
+
+    private void putNameOfApiGatewayInBody(HttpClientRequest request, String nameOfApiGateway) {
+        if (nameOfApiGateway != null) {
+            request.putHeader(RequestUtils.API_GATEWAY_NAME_HEADER
+                    , Base64.getEncoder().encodeToString(nameOfApiGateway.getBytes()));
+        }
     }
 }

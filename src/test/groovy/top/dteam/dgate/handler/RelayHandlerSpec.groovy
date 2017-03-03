@@ -1,16 +1,21 @@
 package top.dteam.dgate.handler
 
 import io.vertx.core.Vertx
+import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServer
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.web.FileUpload
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import spock.lang.Specification
 import top.dteam.dgate.config.ApiGatewayConfig
+import top.dteam.dgate.config.LoginConfig
+import top.dteam.dgate.config.MockUrlConfig
 import top.dteam.dgate.config.RelayUrlConfig
 import top.dteam.dgate.gateway.ApiGateway
 import top.dteam.dgate.gateway.SimpleResponse
+import top.dteam.dgate.utils.JWTTokenGenerator
 import top.dteam.dgate.utils.RequestUtils
 import top.dteam.dgate.utils.TestUtils
 import top.dteam.dgate.utils.Utils
@@ -70,6 +75,29 @@ class RelayHandlerSpec extends Specification {
         result.payload.map.names.contains('name3')
     }
 
+    def "should pass jwt token and name of api gateway to backend"() {
+        setup:
+        SimpleResponse result
+
+        when:
+        sleep(100)
+        requestUtils.get("localhost", 8080, '/login', new JsonObject()) { loginResponse ->
+            requestUtils.requestWithJwtToken(HttpMethod.GET, "localhost", 8080, "/private", new JsonObject()
+                    , loginResponse.payload.getString('token')) { simpleResponse ->
+                result = simpleResponse
+            }
+        }
+
+        TestUtils.waitResult(result, 1500)
+
+        then:
+        result.statusCode == 200
+        result.payload.map.token.sub == '13572209183'
+        result.payload.map.token.name == 'foxgem'
+        result.payload.map.token.role == 'normal'
+        result.payload.map.name == 'testGateway'
+    }
+
     private HttpServer createDestServer() {
         HttpServer httpServer = vertx.createHttpServer()
         Router router = Router.router(vertx)
@@ -87,6 +115,12 @@ class RelayHandlerSpec extends Specification {
             Utils.fireJsonResponse(routingContext.response(), 200, [names: names])
         }
 
+        router.route("/private").handler { routingContext ->
+            Utils.fireJsonResponse(routingContext.response(), 200,
+                    [token: new JsonObject(requestUtils.getJwtHeader(routingContext.request())),
+                     name : requestUtils.getAPIGatewayNameHeader(routingContext.request())])
+        }
+
         httpServer
     }
 
@@ -94,7 +128,17 @@ class RelayHandlerSpec extends Specification {
         new ApiGatewayConfig(
                 name: 'testGateway',
                 port: 8080,
+                login: new LoginConfig([url: '/login', only: ['/private']]),
                 urlConfigs: [
+                        new MockUrlConfig(url: "/login",
+                                expected: [statusCode: 200,
+                                           payload   : {
+                                               JWTAuth jwtAuth = Utils.createAuthProvider(vertx)
+                                               JWTTokenGenerator tokenGenerator = new JWTTokenGenerator(jwtAuth)
+                                               [token: tokenGenerator.token(["sub" : "13572209183", "name": "foxgem",
+                                                                             "role": "normal"], 200)]
+                                           }()]),
+                        new RelayUrlConfig(url: "/private", relayTo: [host: 'localhost', port: 8081]),
                         new RelayUrlConfig(url: "/uploadOne", relayTo: [host: 'localhost', port: 8081]),
                         new RelayUrlConfig(url: "/form", relayTo: [host: 'localhost', port: 8081])
                 ]

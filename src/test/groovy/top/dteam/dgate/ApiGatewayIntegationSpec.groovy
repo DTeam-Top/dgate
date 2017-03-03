@@ -166,9 +166,9 @@ class ApiGatewayIntegationSpec extends Specification {
         result.payload.map.method == HttpMethod.POST.toString()
         result.payload.map.params.param == 'param'
         result.payload.map.params.nameOfApiGateway == 'apiGateway'
-        result.payload.map.params.token.sub == '13572209183'
-        result.payload.map.params.token.name == 'foxgem'
-        result.payload.map.params.token.role == 'normal'
+        result.payload.map.params.sub == '13572209183'
+        result.payload.map.params.name == 'foxgem'
+        result.payload.map.params.role == 'normal'
     }
 
     def "should get 401 when request /forward with an expired jwt token "() {
@@ -200,9 +200,13 @@ class ApiGatewayIntegationSpec extends Specification {
         }
         router.route().handler { routingContext ->
             routingContext.request().bodyHandler { totalBuffer ->
+                JsonObject jwt = new JsonObject(requestUtils.getJwtHeader(routingContext.request()));
+                JsonObject nameOfApiGateway = new JsonObject()
+                        .put("nameOfApiGateway", requestUtils.getAPIGatewayNameHeader(routingContext.request()))
+
                 Utils.fireJsonResponse(routingContext.response(), 200,
                         [method: routingContext.request().method(),
-                         params: totalBuffer.toJsonObject()])
+                         params: totalBuffer.toJsonObject().mergeIn(jwt).mergeIn(nameOfApiGateway)])
             }
         }
 

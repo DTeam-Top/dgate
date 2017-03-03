@@ -3,10 +3,7 @@ package top.dteam.dgate.utils;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +14,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.Map;
 
 public class RequestUtils {
+
+    public static final String JWT_HEADER = "dagte-jwt-token";
+    public static final String API_GATEWAY_NAME_HEADER = "dagte-gateway";
 
     private static final Logger logger = LoggerFactory.getLogger(RequestUtils.class);
 
@@ -44,8 +45,20 @@ public class RequestUtils {
     }
 
     public void request(HttpMethod method, String host, int port, String url, JsonObject data, Handler<SimpleResponse> handler) {
-        httpClient.request(method, port, host, url, defaultResponseHandler(handler))
-                .setChunked(true).putHeader("content-type", "application/json").end(data.toString());
+        HttpClientRequest request = httpClient.request(method, port, host, url, defaultResponseHandler(handler))
+                .setChunked(true)
+                .putHeader("content-type", "application/json");
+        if (data.getJsonObject("token") != null) {
+            request.putHeader(JWT_HEADER, Base64.getEncoder().encodeToString(data.getJsonObject("token").toString().getBytes()));
+            data.remove("token");
+        }
+
+        if (data.getString("nameOfApiGateway") != null) {
+            request.putHeader(API_GATEWAY_NAME_HEADER, Base64.getEncoder().encodeToString(data.getString("nameOfApiGateway").toString().getBytes()));
+            data.remove("nameOfApiGateway");
+        }
+
+        request.end(data.toString());
     }
 
     public void requestWithJwtToken(HttpMethod method, String host, int port, String url, JsonObject data, String token,
@@ -80,6 +93,22 @@ public class RequestUtils {
         request.putHeader("Content-Type", "application/x-www-form-urlencoded")
                 .putHeader("Content-Length", String.valueOf(bodyBuffer.length()));
         request.end(bodyBuffer);
+    }
+
+    public String getJwtHeader(HttpServerRequest request) {
+        if (request.headers().contains(RequestUtils.JWT_HEADER)) {
+            return new String(Base64.getDecoder().decode(request.getHeader(RequestUtils.JWT_HEADER)));
+        } else {
+            return "";
+        }
+    }
+
+    public String getAPIGatewayNameHeader(HttpServerRequest request) {
+        if (request.headers().contains(RequestUtils.API_GATEWAY_NAME_HEADER)) {
+            return new String(Base64.getDecoder().decode(request.getHeader(RequestUtils.API_GATEWAY_NAME_HEADER)));
+        } else {
+            return "";
+        }
     }
 
     private Handler<HttpClientResponse> defaultResponseHandler(Handler<SimpleResponse> handler) {

@@ -5,7 +5,6 @@ import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServer
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
-import spock.lang.Ignore
 import spock.lang.Specification
 import top.dteam.dgate.config.ApiGatewayRepository
 import top.dteam.dgate.gateway.ApiGateway
@@ -17,10 +16,6 @@ import top.dteam.dgate.utils.Utils
 class JWTHandlerSpec extends Specification {
 
     private final static long TIME_OUT = 5
-
-    // ["sub": "13572209183", "name": "foxgem", "role": "normal"]
-    private static
-    final String JWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZm94Z2VtIiwic3ViIjoiMTM1NzIyMDkxODMiLCJyb2xlIjoibm9ybWFsIiwiZXhwIjoxNDg3MzQzOTU1LCJpYXQiOjE0ODczNDM5NTB9.UfZIcPJOuFtgbPHFPDXdb76Q9iZWJdBDSzbnP3zBl-0='
 
     Vertx vertx
     RequestUtils requestUtils
@@ -168,16 +163,20 @@ class JWTHandlerSpec extends Specification {
 
         when:
         sleep(100)
-        requestUtils.requestWithJwtToken(HttpMethod.GET, "localhost", 7000, "/public", new JsonObject(), JWT) { simpleResponse ->
-            result = simpleResponse
+        requestUtils.get("localhost", 7000, '/login', new JsonObject()) { loginResponse ->
+            requestUtils.requestWithJwtToken(HttpMethod.GET, "localhost", 7000, "/public", new JsonObject()
+                    , loginResponse.payload.getString('token')) { simpleResponse ->
+                result = simpleResponse
+            }
         }
+
         TestUtils.waitResult(result, 1500)
 
         then:
         result.statusCode == 200
-        result.payload.map.params.token.sub == '13572209183'
-        result.payload.map.params.token.name == 'foxgem'
-        result.payload.map.params.token.role == 'normal'
+        result.payload.map.params.sub == '13572209183'
+        result.payload.map.params.name == 'foxgem'
+        result.payload.map.params.role == 'normal'
     }
 
     private void deployGate() {
@@ -191,9 +190,10 @@ class JWTHandlerSpec extends Specification {
 
         router.route("/normal").handler { routingContext ->
             routingContext.request().bodyHandler { totalBuffer ->
+                JsonObject jwt = new JsonObject(requestUtils.getJwtHeader(routingContext.request()));
                 Utils.fireJsonResponse(routingContext.response(), 200,
                         [method: routingContext.request().method(),
-                         params: totalBuffer.toJsonObject()])
+                         params: totalBuffer.toJsonObject().mergeIn(jwt)])
             }
         }
 

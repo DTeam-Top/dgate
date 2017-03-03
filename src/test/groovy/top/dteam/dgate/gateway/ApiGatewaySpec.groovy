@@ -60,9 +60,9 @@ class ApiGatewaySpec extends Specification {
         url          | statusCode                                        | response
         '/mock'      | prepareConfig().urlConfigs[0].expected.statusCode | prepareConfig().urlConfigs[0].expected.payload
         '/mock-get'  | 200                                               | [method: 'get']
-        '/forward'   | 200                                               | [method1: HttpMethod.GET, params1: [method: "get", nameOfApiGateway: 'testGateway']]
-        '/composite' | 200                                               | [method1: HttpMethod.GET, params1: [method: "get", nameOfApiGateway: 'testGateway'],
-                                                                            method2: HttpMethod.GET, params2: [method: "get", nameOfApiGateway: 'testGateway']]
+        '/forward'   | 200                                               | [method1: HttpMethod.GET, params1: [method: "get"]]
+        '/composite' | 200                                               | [method1: HttpMethod.GET, params1: [method: "get"],
+                                                                            method2: HttpMethod.GET, params2: [method: "get"]]
     }
 
     def "could mock login and get a jwt token"() {
