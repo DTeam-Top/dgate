@@ -57,7 +57,7 @@ public class RequestUtils {
                 .end(data.toString());
     }
 
-    public HttpClientRequest replay(HttpMethod method, String host, int port, String url, Handler<SimpleResponse> handler) {
+    public HttpClientRequest relay(HttpMethod method, String host, int port, String url, Handler<SimpleResponse> handler) {
         return httpClient.request(method, port, host, url, defaultResponseHandler(handler));
     }
 

@@ -130,6 +130,13 @@ class ApiGatewayRepositorySpec extends Specification {
                             port = 8080
                         }
                     }
+                    "/relayAnotherURL" {
+                        relayTo {
+                            host = 'localhost'
+                            port = 8081
+                            circuitBreaker = [maxFailures: 2, timeout: 3000, resetTimeout: 3000]
+                        }
+                    }
                 }
             }
         """
@@ -229,10 +236,17 @@ class ApiGatewayRepositorySpec extends Specification {
             login.refreshExpire() == 1000
             !login.only()
             !cors
-            urlConfigs.size() == 3
+            urlConfigs.size() == 4
             urlConfigs[2].relayTo.host == 'localhost'
             urlConfigs[2].relayTo.port == 8080
-            !urlConfigs[2].relayTo.cbOptions
+            urlConfigs[2].relayTo.cbOptions.maxFailures == 3
+            urlConfigs[2].relayTo.cbOptions.timeout == 5000
+            urlConfigs[2].relayTo.cbOptions.resetTimeout == 10000
+            urlConfigs[3].relayTo.host == 'localhost'
+            urlConfigs[3].relayTo.port == 8081
+            urlConfigs[3].relayTo.cbOptions.maxFailures == 2
+            urlConfigs[3].relayTo.cbOptions.timeout == 3000
+            urlConfigs[3].relayTo.cbOptions.resetTimeout == 3000
         }
     }
 

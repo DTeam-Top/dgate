@@ -5,6 +5,7 @@ import io.vertx.core.http.HttpServer
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import spock.lang.Specification
+import spock.lang.Unroll
 import top.dteam.dgate.config.ApiGatewayRepository
 import top.dteam.dgate.gateway.ApiGateway
 import top.dteam.dgate.gateway.SimpleResponse
@@ -25,6 +26,12 @@ class CircuitBreakerSpec extends Specification {
                         [ host: 'localhost', port: 8080, url: '/test-5s']
                     ]
                 }
+                "/relay" {
+                    relayTo {
+                        host = 'localhost'
+                        port = 8080
+                    }
+                }
             }
         }
         apiGateway2 {
@@ -39,6 +46,12 @@ class CircuitBreakerSpec extends Specification {
                     upstreamURLs = [
                         [host: 'localhost', port: 8080, url: '/test-2s']
                     ]
+                }
+                "/relay" {
+                    relayTo {
+                        host = 'localhost'
+                        port = 8080
+                    }
                 }
             }
         }
@@ -55,6 +68,13 @@ class CircuitBreakerSpec extends Specification {
                         [host: 'localhost', port: 8080, url: '/test-3s',
                          circuitBreaker: [maxFailures: 2, timeout: 3000, resetTimeout: 3000]]
                     ]
+                }
+                "/relay" {
+                    relayTo {
+                        host = 'localhost'
+                        port = 8080
+                        circuitBreaker = [maxFailures: 2, timeout: 3000, resetTimeout: 3000]
+                    }
                 }
             }
         }
@@ -76,13 +96,14 @@ class CircuitBreakerSpec extends Specification {
         vertx.close()
     }
 
+    @Unroll
     def "CircuitBreak Default Options should work"() {
         setup:
         SimpleResponse result
 
         when:
         sleep(100)
-        requestUtils.post("localhost", 7000, "/test", new JsonObject()) { simpleResponse ->
+        requestUtils.post("localhost", 7000, url, new JsonObject()) { simpleResponse ->
             result = simpleResponse
         }
         TestUtils.waitResult(result, DEFAULT_OP_TIMEOUT + 500)
@@ -90,15 +111,19 @@ class CircuitBreakerSpec extends Specification {
         then:
         result.statusCode == 500
         result.payload.map.error == "operation timeout"
+
+        where:
+        url << ['/test', '/relay']
     }
 
+    @Unroll
     def "Global CircuitBreak Options should override the default Circuit Break Options"() {
         setup:
         SimpleResponse result
 
         when:
         sleep(100)
-        requestUtils.post("localhost", 7001, "/test", new JsonObject()) { simpleResponse ->
+        requestUtils.post("localhost", 7001, url, new JsonObject()) { simpleResponse ->
             result = simpleResponse
         }
         TestUtils.waitResult(result, 2000 + 500)
@@ -106,15 +131,19 @@ class CircuitBreakerSpec extends Specification {
         then:
         result.statusCode == 500
         result.payload.map.error == "operation timeout"
+
+        where:
+        url << ['/test', '/relay']
     }
 
+    @Unroll
     def "Circuit Break Options for specific URL should be used first"() {
         setup:
         SimpleResponse result
 
         when:
         sleep(100)
-        requestUtils.post("localhost", 7002, "/test", new JsonObject()) { simpleResponse ->
+        requestUtils.post("localhost", 7002, url, new JsonObject()) { simpleResponse ->
             result = simpleResponse
         }
         TestUtils.waitResult(result, 3000 + 500)
@@ -122,6 +151,9 @@ class CircuitBreakerSpec extends Specification {
         then:
         result.statusCode == 500
         result.payload.map.error == "operation timeout"
+
+        where:
+        url << ['/test', '/relay']
     }
 
     private HttpServer createDest() {
@@ -129,7 +161,7 @@ class CircuitBreakerSpec extends Specification {
         Router router = Router.router(vertx)
         httpServer.requestHandler(router.&accept).listen(8080)
 
-        router.route('/test').handler { routingContext ->
+        router.route().handler { routingContext ->
             sleep(DEFAULT_OP_TIMEOUT + 200)
             routingContext.request().bodyHandler { totalBuffer ->
                 Utils.fireJsonResponse(routingContext.response(), 200, [test: true])

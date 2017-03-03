@@ -89,14 +89,17 @@ class ApiGatewayRepository {
                     before: upstreamURL.before, after: upstreamURL.after, cbOptions: cbOptionsForUpstreamURL)
         }
 
-        RelayTo relayTo = new RelayTo(body.relayTo)
+        Map relayTo = body.relayTo
 
         if (expected) {
             return new MockUrlConfig(url: url, required: required, methods: methods, expected: expected)
         } else if (upstreamURLs) {
             return new ProxyUrlConfig(url: url, required: required, methods: methods, upstreamURLs: upstreamURLs)
         } else if (relayTo) {
-            return new RelayUrlConfig(url: url, relayTo: relayTo)
+            CircuitBreakerOptions cbOptionsForRelayTo =
+                    relayTo.circuitBreaker ? buildCircuitBreaker(relayTo.circuitBreaker) : cbOptions
+            return new RelayUrlConfig(url: url,
+                    relayTo: new RelayTo(host: relayTo.host, port: relayTo.port, cbOptions: cbOptionsForRelayTo))
         } else {
             throw new InvalidConfiguriationException('Unknown URL type!')
         }

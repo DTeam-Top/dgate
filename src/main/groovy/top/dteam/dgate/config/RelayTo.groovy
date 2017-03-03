@@ -10,4 +10,9 @@ class RelayTo {
     int port
     CircuitBreakerOptions cbOptions
 
+    @Override
+    String toString() {
+        "$host-$port"
+    }
+
 }
