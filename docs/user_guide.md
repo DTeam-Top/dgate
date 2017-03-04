@@ -279,7 +279,7 @@ UpStreamURL除了支持一般的url格式，还支持url path parameters，格�
 }
 ~~~
 
-对于relay请求，不需要指定后端url，只需指定主机名和端口即可。这也正是透传的含义：除了位置不同，其余都一样，这样也可以方便老旧程序快速和dgate集成。但需注意：relay请求不支持before/after闭包。
+对于relay请求，不需要指定后端url，只需指定主机名和端口即可。这也正是透传的含义：除了位置不同，其余都一样，这样也可以方便老旧程序快速和dgate集成。但需注意：relay请求不支持before/after闭包，也不支持required和method配置。
 
 ## 安全
 
