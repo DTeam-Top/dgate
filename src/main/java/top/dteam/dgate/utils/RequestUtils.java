@@ -50,12 +50,10 @@ public class RequestUtils {
                 .putHeader("content-type", "application/json");
         if (data.getJsonObject("token") != null) {
             request.putHeader(JWT_HEADER, Base64.getEncoder().encodeToString(data.getJsonObject("token").toString().getBytes()));
-            data.remove("token");
         }
 
         if (data.getString("nameOfApiGateway") != null) {
             request.putHeader(API_GATEWAY_NAME_HEADER, Base64.getEncoder().encodeToString(data.getString("nameOfApiGateway").toString().getBytes()));
-            data.remove("nameOfApiGateway");
         }
 
         request.end(data.toString());
