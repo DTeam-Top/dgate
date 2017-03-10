@@ -2,24 +2,27 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.rolling.RollingFileAppender
-import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy
+import ch.qos.logback.core.rolling.FixedWindowRollingPolicy
+import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy
 
 appender("Console", ConsoleAppender) {
     encoder(PatternLayoutEncoder) {
-        pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+        pattern = "%d [%thread] %-5level %logger{36} - %msg%n"
     }
 }
 
 appender("R", RollingFileAppender) {
     file = "dgate.log"
     encoder(PatternLayoutEncoder) {
-        pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+        pattern = "%d [%thread] %-5level %logger{36} - %msg%n"
     }
-    rollingPolicy(SizeAndTimeBasedRollingPolicy) {
-        fileNamePattern = "dgate_%d{yyyy-MM-dd}.%i.log"
+    rollingPolicy(FixedWindowRollingPolicy) {
+        fileNamePattern = "dgate.log.%i"
+        minIndex = 1
+        maxIndex = 10
+    }
+    triggeringPolicy(SizeBasedTriggeringPolicy) {
         maxFileSize = "10MB"
-        maxHistory = 7
-        totalSizeCap = "500MB"
     }
 }
 
