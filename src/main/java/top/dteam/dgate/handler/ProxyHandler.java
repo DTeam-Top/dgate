@@ -37,10 +37,17 @@ public class ProxyHandler extends RequestHandler {
         requestUtils = new RequestUtils(vertx);
 
         circuitBreakers = new HashMap<>();
-        upstreamURLs.forEach(upStreamURL ->
-            circuitBreakers.put(upStreamURL.toString(),
-                    CircuitBreaker.create(String.format("cb-%s-%s", urlConfig.getUrl(),
-                            upStreamURL.toString()), vertx, upStreamURL.getCbOptions()))
+        upstreamURLs.forEach(upStreamURL -> {
+                    if (upStreamURL.getCbOptions() != null) {
+                        circuitBreakers.put(upStreamURL.toString(),
+                                CircuitBreaker.create(String.format("cb-%s-%s", urlConfig.getUrl(),
+                                        upStreamURL.toString()), vertx, upStreamURL.getCbOptions()));
+                    } else {
+                        circuitBreakers.put(upStreamURL.toString(),
+                                CircuitBreaker.create(String.format("cb-%s-%s", urlConfig.getUrl(),
+                                        upStreamURL.toString()), vertx));
+                    }
+                }
         );
     }
 

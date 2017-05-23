@@ -31,8 +31,13 @@ public class RelayHandler implements GatewayRequestHandler {
         this.vertx = vertx;
         this.relayTo = urlConfig.getRelayTo();
         this.requestUtils = new RequestUtils(vertx);
-        this.circuitBreaker = CircuitBreaker.create(String.format("cb-%s-%s", urlConfig.getUrl(),
-                relayTo.toString()), vertx, relayTo.getCbOptions());
+        if (relayTo.getCbOptions() != null) {
+            this.circuitBreaker = CircuitBreaker.create(String.format("cb-%s-%s", urlConfig.getUrl(),
+                    relayTo.toString()), vertx, relayTo.getCbOptions());
+        } else {
+            this.circuitBreaker = CircuitBreaker.create(String.format("cb-%s-%s", urlConfig.getUrl(),
+                    relayTo.toString()), vertx);
+        }
     }
 
     @Override
