@@ -75,7 +75,7 @@ class ApiGatewayRepository {
                 .setResetTimeout(circuitBreaker?.resetTimeout ?: 10000)
     }
 
-    private static UrlConfig buildUrl(def key, def body, CircuitBreakerOptions cbOptions) {
+    private static UrlConfig buildUrl(def key, def body, CircuitBreakerOptions defaultCBOptions) {
         String url = key
         Object required = body.required ?: null
         List<HttpMethod> methods = body.methods ?: []
@@ -83,7 +83,7 @@ class ApiGatewayRepository {
         List<UpstreamURL> upstreamURLs = new ArrayList<>()
         body.upstreamURLs.each { upstreamURL ->
             CircuitBreakerOptions cbOptionsForUpstreamURL =
-                    upstreamURL.circuitBreaker ? buildCircuitBreaker(upstreamURL.circuitBreaker) : cbOptions
+                    upstreamURL.circuitBreaker ? buildCircuitBreaker(upstreamURL.circuitBreaker) : defaultCBOptions
 
             upstreamURLs << new UpstreamURL(host: upstreamURL.host, port: upstreamURL.port, url: upstreamURL.url,
                     before: upstreamURL.before, after: upstreamURL.after, cbOptions: cbOptionsForUpstreamURL)
@@ -97,7 +97,7 @@ class ApiGatewayRepository {
             return new ProxyUrlConfig(url: url, required: required, methods: methods, upstreamURLs: upstreamURLs)
         } else if (relayTo) {
             CircuitBreakerOptions cbOptionsForRelayTo =
-                    relayTo.circuitBreaker ? buildCircuitBreaker(relayTo.circuitBreaker) : cbOptions
+                    relayTo.circuitBreaker ? buildCircuitBreaker(relayTo.circuitBreaker) : defaultCBOptions
             return new RelayUrlConfig(url: url,
                     relayTo: new RelayTo(host: relayTo.host, port: relayTo.port, cbOptions: cbOptionsForRelayTo))
         } else {
