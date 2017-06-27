@@ -16,7 +16,7 @@ public class CircuitBreakerMonitor extends AbstractVerticle {
     public void start() {
         consumer = vertx.eventBus().consumer("vertx.circuit-breaker", message -> {
             JsonObject body = (JsonObject) message.body();
-            logger.info("~~~~~ Circuit Breaker Status: node={}, name={}, state={}, failures={} ~~~~~\n",
+            logger.debug("~~~~~ Circuit Breaker Status: node={}, name={}, state={}, failures={} ~~~~~\n",
                     body.getString("node"), body.getString("name"), body.getString("state"), body.getInteger("failures"));
         });
     }

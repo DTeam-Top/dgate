@@ -11,7 +11,7 @@ public class ApiGateway extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiGateway.class);
 
-    ApiGatewayConfig config;
+    private ApiGatewayConfig config;
 
     public ApiGateway(ApiGatewayConfig config) {
         this.config = config;

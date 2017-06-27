@@ -119,10 +119,10 @@ class CompositeRequestSpec extends Specification {
                 new ProxyUrlConfig(
                         upstreamURLs: Arrays.asList(
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/success1",
-                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                        circuitBreaker: new CircuitBreakerOptions().setMaxFailures(3)
                                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)),
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/success2",
-                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                        circuitBreaker: new CircuitBreakerOptions().setMaxFailures(3)
                                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))
                         )
                 )))
@@ -130,10 +130,10 @@ class CompositeRequestSpec extends Specification {
                 new ProxyUrlConfig(
                         upstreamURLs: Arrays.asList(
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/failure1",
-                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                        circuitBreaker: new CircuitBreakerOptions().setMaxFailures(3)
                                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)),
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/failure2",
-                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                        circuitBreaker: new CircuitBreakerOptions().setMaxFailures(3)
                                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))
                         )
                 )))
@@ -141,10 +141,10 @@ class CompositeRequestSpec extends Specification {
                 new ProxyUrlConfig(
                         upstreamURLs: Arrays.asList(
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/failure1",
-                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                        circuitBreaker: new CircuitBreakerOptions().setMaxFailures(3)
                                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)),
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/success2",
-                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                        circuitBreaker: new CircuitBreakerOptions().setMaxFailures(3)
                                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))
                         )
                 )))
@@ -155,13 +155,13 @@ class CompositeRequestSpec extends Specification {
                                     params.put("before", paramForBefore)
                                     params
                                 },
-                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                        circuitBreaker: new CircuitBreakerOptions().setMaxFailures(3)
                                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT)),
                                 new UpstreamURL(host: "localhost", port: 8082, url: "/success2", after: { simpleResponse ->
                                     simpleResponse.payload.put("after", paramForAfter)
                                     simpleResponse
                                 },
-                                        cbOptions: new CircuitBreakerOptions().setMaxFailures(3)
+                                        circuitBreaker: new CircuitBreakerOptions().setMaxFailures(3)
                                                 .setTimeout(OP_TIMEOUT).setResetTimeout(RESET_TIMEOUT))
                         )
                 )))

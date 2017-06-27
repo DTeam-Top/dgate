@@ -14,6 +14,7 @@ import top.dteam.dgate.config.UpstreamURL;
 import top.dteam.dgate.gateway.SimpleResponse;
 import top.dteam.dgate.utils.RequestUtils;
 import top.dteam.dgate.utils.Utils;
+import top.dteam.dgate.utils.cache.ResponseHolder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,10 +39,10 @@ public class ProxyHandler extends RequestHandler {
 
         circuitBreakers = new HashMap<>();
         upstreamURLs.forEach(upStreamURL -> {
-                    if (upStreamURL.getCbOptions() != null) {
+                    if (upStreamURL.getCircuitBreaker() != null) {
                         circuitBreakers.put(upStreamURL.toString(),
                                 CircuitBreaker.create(String.format("cb-%s-%s", urlConfig.getUrl(),
-                                        upStreamURL.toString()), vertx, upStreamURL.getCbOptions()));
+                                        upStreamURL.toString()), vertx, upStreamURL.getCircuitBreaker()));
                     } else {
                         circuitBreakers.put(upStreamURL.toString(),
                                 CircuitBreaker.create(String.format("cb-%s-%s", urlConfig.getUrl(),
@@ -60,7 +61,7 @@ public class ProxyHandler extends RequestHandler {
             completableFutures.add(completableFuture);
         });
 
-        List<Integer> statusCodes = new ArrayList<Integer>();
+        List<Integer> statusCodes = new ArrayList<>();
         AtomicInteger count = new AtomicInteger(completableFutures.size());
         JsonObject payload = new JsonObject();
         for (int i = 0; i < completableFutures.size(); i++) {
@@ -69,7 +70,8 @@ public class ProxyHandler extends RequestHandler {
                 payload.mergeIn(simpleResponse.getPayload());
                 statusCodes.add(simpleResponse.getStatusCode());
                 if (count.decrementAndGet() == 0) {
-                    Utils.fireJsonResponse(response, finalStatusCode(statusCodes), payload.getMap());
+                    Utils.fireJsonResponse(response, finalStatusCode(statusCodes)
+                            , payload.getMap());
                 }
             }).exceptionally(throwable -> {
                 payload.put(upStream.toString(), throwable);
@@ -84,15 +86,30 @@ public class ProxyHandler extends RequestHandler {
 
     private void partialRequest(HttpMethod method, UpstreamURL upstreamURL, JsonObject params,
                                 CompletableFuture<SimpleResponse> completableFuture) {
-        CircuitBreaker circuitBreaker = circuitBreakers.get(upstreamURL.toString());
         try {
+            String requestURI = upstreamURL.resolve(params);
+
+            if (isResponseCached(requestURI, upstreamURL, params.getJsonObject("token"))) {
+                logger.info("Found response cache for {}{}{}"
+                        , nameOfApiGateway, urlConfig.getUrl(), requestURI);
+                SimpleResponse simpleResponse = new SimpleResponse();
+                simpleResponse.setStatusCode(200);
+                simpleResponse.setPayload(getResponseFromCache(requestURI
+                        , upstreamURL, params.getJsonObject("token")));
+
+                completableFuture.complete(simpleResponse);
+
+                return;
+            }
+
+            CircuitBreaker circuitBreaker = circuitBreakers.get(upstreamURL.toString());
             circuitBreaker.execute(future -> {
                 Map beforeContext = createBeforeContext();
                 if (upstreamURL.getBefore() != null && beforeContext != null) {
                     upstreamURL.getBefore().setDelegate(beforeContext);
                 }
                 requestUtils.request(method,
-                        upstreamURL.getHost(), upstreamURL.getPort(), upstreamURL.resolve(params),
+                        upstreamURL.getHost(), upstreamURL.getPort(), requestURI,
                         processParamsIfBeforeHandlerExists(upstreamURL.getBefore(), params),
                         simpleResponse -> {
                             Map afterContext = createAfterContext();
@@ -105,8 +122,17 @@ public class ProxyHandler extends RequestHandler {
                 if (result.succeeded()) {
                     SimpleResponse simpleResponse = (SimpleResponse) result.result();
                     completableFuture.complete(simpleResponse);
+
+                    if (upstreamURL.getExpires() > 0) {
+                        logger.info("Put response cache for {}/{}{}"
+                                , nameOfApiGateway, urlConfig.getUrl(), requestURI);
+                        putResponseToCache(requestURI, upstreamURL
+                                , params.getJsonObject("token")
+                                , simpleResponse.getPayload()
+                                , upstreamURL.getExpires());
+                    }
                 } else {
-                    logger.error("CB[{}] execution failed, cause: {}", circuitBreaker.name(), result.cause());
+                    logger.error("CB[{}] execution failed, cause: ", circuitBreaker.name(), result.cause());
 
                     SimpleResponse simpleResponse = new SimpleResponse();
                     JsonObject error = new JsonObject();
@@ -118,9 +144,15 @@ public class ProxyHandler extends RequestHandler {
                 }
             });
         } catch (Exception e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
-            throw e;
+            logger.error("Request to upstream failed: ", e);
+
+            SimpleResponse simpleResponse = new SimpleResponse();
+            JsonObject error = new JsonObject();
+            error.put("error", e.getMessage());
+            simpleResponse.setPayload(error);
+            simpleResponse.setStatusCode(500);
+
+            completableFuture.complete(simpleResponse);
         }
     }
 
@@ -168,4 +200,25 @@ public class ProxyHandler extends RequestHandler {
         }
     }
 
+    private void putResponseToCache(String requestURI, UpstreamURL upstreamURL
+            , JsonObject token, JsonObject payload, int expires) {
+        ResponseHolder.put(nameOfApiGateway, urlConfig.getUrl()
+                , upstreamURL.getHost(), upstreamURL.getPort(), upstreamURL.getUrl()
+                , requestURI, token, payload, expires);
+    }
+
+    private boolean isResponseCached(String requestURI
+            , UpstreamURL upstreamURL, JsonObject token) {
+        return upstreamURL.getExpires() > 0 &&
+                ResponseHolder.containsCacheEntry(nameOfApiGateway, urlConfig.getUrl()
+                        , upstreamURL.getHost(), upstreamURL.getPort()
+                        , upstreamURL.getUrl(), requestURI, token);
+    }
+
+    private JsonObject getResponseFromCache(String requestURI
+            , UpstreamURL upstreamURL, JsonObject token) {
+        return ResponseHolder.get(nameOfApiGateway, urlConfig.getUrl()
+                , upstreamURL.getHost(), upstreamURL.getPort()
+                , upstreamURL.getUrl(), requestURI, token);
+    }
 }
