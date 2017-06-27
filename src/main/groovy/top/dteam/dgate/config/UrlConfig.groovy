@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpMethod
 abstract class UrlConfig {
 
     String url
+    int expires = 0
     Object required
     List<HttpMethod> methods
 

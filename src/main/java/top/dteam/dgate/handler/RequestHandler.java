@@ -133,6 +133,7 @@ public abstract class RequestHandler implements GatewayRequestHandler {
         verifyRequiredExists(routingContext, body);
         putJwtTokenInBody(body, routingContext);
         putNameOfApiGatewayInBody(body);
+
         processRequestBody(routingContext.request(), routingContext.response(), body);
     }
 }

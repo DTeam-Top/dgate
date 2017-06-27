@@ -8,7 +8,7 @@ class RelayTo {
 
     String host
     int port
-    CircuitBreakerOptions cbOptions
+    CircuitBreakerOptions circuitBreaker
 
     @Override
     String toString() {

@@ -200,7 +200,7 @@ class ApiGatewayIntegationSpec extends Specification {
         }
         router.route().handler { routingContext ->
             routingContext.request().bodyHandler { totalBuffer ->
-                JsonObject jwt = new JsonObject(requestUtils.getJwtHeader(routingContext.request()));
+                JsonObject jwt = new JsonObject(requestUtils.getJwtHeader(routingContext.request()))
                 JsonObject nameOfApiGateway = new JsonObject()
                         .put("nameOfApiGateway", requestUtils.getAPIGatewayNameHeader(routingContext.request()))
 

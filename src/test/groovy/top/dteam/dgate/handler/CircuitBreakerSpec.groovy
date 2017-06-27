@@ -172,9 +172,11 @@ class CircuitBreakerSpec extends Specification {
     }
 
     private void deployGate() {
-        vertx.deployVerticle(new ApiGateway(ApiGatewayRepository.build(config)[0]))
-        vertx.deployVerticle(new ApiGateway(ApiGatewayRepository.build(config)[1]))
-        vertx.deployVerticle(new ApiGateway(ApiGatewayRepository.build(config)[2]))
+        ApiGatewayRepository repository = ApiGatewayRepository.build(config)
+
+        vertx.deployVerticle(new ApiGateway(repository[0]))
+        vertx.deployVerticle(new ApiGateway(repository[1]))
+        vertx.deployVerticle(new ApiGateway(repository[2]))
     }
 
 }

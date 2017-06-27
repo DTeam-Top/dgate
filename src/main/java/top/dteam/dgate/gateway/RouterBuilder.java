@@ -129,8 +129,8 @@ public class RouterBuilder {
 
             int statusCode = routingContext.statusCode() == -1 ? 500 : routingContext.statusCode();
 
-            logger.error("Got [{}] during processing [{}], status code: {}",
-                    routingContext.response().getStatusMessage(), routingContext.request().absoluteURI(), statusCode);
+            logger.error("Got [{}] during processing [{}], status code: {}. ",
+                    routingContext.response().getStatusMessage(), routingContext.request().absoluteURI(), statusCode, routingContext.failure());
             Map<String, String> payload = new HashMap<>();
             payload.put("error", routingContext.response().getStatusMessage());
             Utils.fireJsonResponse(routingContext.response(), statusCode, payload);
