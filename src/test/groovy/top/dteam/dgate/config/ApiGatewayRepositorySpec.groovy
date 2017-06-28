@@ -45,6 +45,7 @@ class ApiGatewayRepositorySpec extends Specification {
                         }
                     }
                     "/forward" {
+                        expires = 1000
                         required = [get: ['param1'], post: ['param2'], delete: ['param3']]
                         methods = [HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE]
                         upstreamURLs = [
@@ -60,7 +61,7 @@ class ApiGatewayRepositorySpec extends Specification {
                         methods = [HttpMethod.GET, HttpMethod.POST]
                         upstreamURLs = [
                             [host: 'localhost', port: 8080, url: '/test1'],
-                            [host: 'localhost', port: 8080, url: '/test2']
+                            [host: 'localhost', port: 8080, url: '/test2', expires: 2000]
                         ]
                     }
                 }
@@ -105,6 +106,7 @@ class ApiGatewayRepositorySpec extends Specification {
             }
             apiGateway3 {
                 port = 7002
+                expires = 15000
                 login {
                     url = '/login'
                     ignore = ['/pub']
@@ -131,6 +133,7 @@ class ApiGatewayRepositorySpec extends Specification {
                         }
                     }
                     "/relayAnotherURL" {
+                        expires = 0
                         relayTo {
                             host = 'localhost'
                             port = 8081
@@ -165,17 +168,19 @@ class ApiGatewayRepositorySpec extends Specification {
             urlConfigs.size() == 4
             with(urlConfigs[0]) {
                 url == '/login'
+                expires == 0
                 required == ["sub", "password"]
                 methods == [HttpMethod.GET, HttpMethod.POST]
                 upstreamURLs.size == 1
                 upstreamURLs[0].host == 'localhost'
                 upstreamURLs[0].port == 8080
                 upstreamURLs[0].url == '/login'
+                upstreamURLs[0].expires == 0
                 !upstreamURLs[0].before
                 upstreamURLs[0].after
-                upstreamURLs[0].cbOptions.maxFailures == 3
-                upstreamURLs[0].cbOptions.timeout == 5000
-                upstreamURLs[0].cbOptions.resetTimeout == 10000
+                upstreamURLs[0].circuitBreaker.maxFailures == 3
+                upstreamURLs[0].circuitBreaker.timeout == 5000
+                upstreamURLs[0].circuitBreaker.resetTimeout == 10000
             }
             urlConfigs[1].expected == [statusCode: 200, payload: [test: true]]
             with(urlConfigs[2]) {
@@ -190,7 +195,7 @@ class ApiGatewayRepositorySpec extends Specification {
                 upstreamURLs[0].before(jsonObject) == jsonObject
                 upstreamURLs[0].after
                 upstreamURLs[0].after(simpleResponse) == simpleResponse
-                upstreamURLs[0].cbOptions
+                upstreamURLs[0].circuitBreaker
             }
             with(urlConfigs[3]) {
                 required == ['param1', 'param2']
@@ -198,14 +203,15 @@ class ApiGatewayRepositorySpec extends Specification {
                 upstreamURLs.size() == 2
                 upstreamURLs == [
                         new UpstreamURL(host: 'localhost', port: 8080, url: '/test1'),
-                        new UpstreamURL(host: 'localhost', port: 8080, url: '/test2')
+                        new UpstreamURL(host: 'localhost', port: 8080, url: '/test2', expires: 2000)
                 ]
                 !upstreamURLs[0].before
                 !upstreamURLs[0].after
-                upstreamURLs[0].cbOptions
+                upstreamURLs[0].circuitBreaker
                 !upstreamURLs[1].before
                 !upstreamURLs[1].after
-                upstreamURLs[1].cbOptions
+                upstreamURLs[1].circuitBreaker
+                upstreamURLs[1].expires == 2000
             }
         }
         with(repository[1]) {
@@ -218,12 +224,12 @@ class ApiGatewayRepositorySpec extends Specification {
             urlConfigs[0].expected == [get   : [statusCode: 200, payload: [method: 'get']],
                                        post  : [statusCode: 200, payload: [method: 'post']],
                                        delete: [statusCode: 200, payload: [method: 'delete']]]
-            urlConfigs[1].upstreamURLs[0].cbOptions.maxFailures == 5
-            urlConfigs[1].upstreamURLs[0].cbOptions.timeout == 10000
-            urlConfigs[1].upstreamURLs[0].cbOptions.resetTimeout == 30000
-            urlConfigs[2].upstreamURLs[0].cbOptions.maxFailures == 2
-            urlConfigs[2].upstreamURLs[0].cbOptions.timeout == 3000
-            urlConfigs[2].upstreamURLs[0].cbOptions.resetTimeout == 3000
+            urlConfigs[1].upstreamURLs[0].circuitBreaker.maxFailures == 5
+            urlConfigs[1].upstreamURLs[0].circuitBreaker.timeout == 10000
+            urlConfigs[1].upstreamURLs[0].circuitBreaker.resetTimeout == 30000
+            urlConfigs[2].upstreamURLs[0].circuitBreaker.maxFailures == 2
+            urlConfigs[2].upstreamURLs[0].circuitBreaker.timeout == 3000
+            urlConfigs[2].upstreamURLs[0].circuitBreaker.resetTimeout == 3000
         }
         with(repository[2]) {
             port == 7002
@@ -239,14 +245,16 @@ class ApiGatewayRepositorySpec extends Specification {
             urlConfigs.size() == 4
             urlConfigs[2].relayTo.host == 'localhost'
             urlConfigs[2].relayTo.port == 8080
-            urlConfigs[2].relayTo.cbOptions.maxFailures == 3
-            urlConfigs[2].relayTo.cbOptions.timeout == 5000
-            urlConfigs[2].relayTo.cbOptions.resetTimeout == 10000
+            urlConfigs[2].relayTo.circuitBreaker.maxFailures == 3
+            urlConfigs[2].relayTo.circuitBreaker.timeout == 5000
+            urlConfigs[2].relayTo.circuitBreaker.resetTimeout == 10000
+            urlConfigs[2].expires == 15000
             urlConfigs[3].relayTo.host == 'localhost'
             urlConfigs[3].relayTo.port == 8081
-            urlConfigs[3].relayTo.cbOptions.maxFailures == 2
-            urlConfigs[3].relayTo.cbOptions.timeout == 3000
-            urlConfigs[3].relayTo.cbOptions.resetTimeout == 3000
+            urlConfigs[3].relayTo.circuitBreaker.maxFailures == 2
+            urlConfigs[3].relayTo.circuitBreaker.timeout == 3000
+            urlConfigs[3].relayTo.circuitBreaker.resetTimeout == 3000
+            urlConfigs[3].expires == 0
         }
     }
 

@@ -19,7 +19,7 @@ class LoginConfig {
                 throw new InvalidConfiguriationException('ignore and only both can not be in login config.')
             }
 
-            config = (Map) login
+            config = login as Map
         } else {
             throw new InvalidConfiguriationException('login could be a String or a Map only.')
         }

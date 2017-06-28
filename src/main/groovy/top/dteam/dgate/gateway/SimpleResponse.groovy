@@ -2,11 +2,11 @@ package top.dteam.dgate.gateway
 
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonObject
 
 @EqualsAndHashCode
 @CompileStatic
-public class SimpleResponse {
+class SimpleResponse {
 
     int statusCode
     JsonObject payload

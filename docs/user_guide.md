@@ -95,6 +95,7 @@ apiGatewayName {
 
 ~~~
 url {
+    expires // 全局缓存过期时间，单位毫秒。默认0，即不缓存
     required //必需参数列表
     methods  //支持的HTTP Method
     upstreamURLs { 上游URL列表（UpStreamURL） }
@@ -432,7 +433,7 @@ cors配置并非必需的，若没有，dgate不会支持CORS。CORS的配置项
 
 此外，在调试过程中，也可以注意浏览器给出的提示，根据相应提示进行配置。
 
-警告：在产品环境中不要使用“\*”作为allowedOriginPattern的值。
+> **NOTE**：在产品环境中不要使用“\*”作为allowedOriginPattern的值。
 
 ## 每个请求的附加参数
 
@@ -484,13 +485,63 @@ apiGateway {
 ……
 ~~~
 
-### 日志级别
+## 缓存设置
+dgate支持URL缓存，可以将反向代理的后端服务返回的响应缓存一段时间，减少后端服务的压力。可以在全局和局部配置中使用`expires`指令设置缓存过期时间，单位**毫秒**。全局默认`expires = 0`，即所有URL不启用缓存，所有请求由反向代理的后端直接响应。
+
+缓存策略仅对**成功**的返回(HTTP状态码200)生效，这也是情理之中的。
+
+一个典型的缓存配置参考如下:
+~~~
+apiGateway1 {
+    port = 7000
+    expires = 10000  // apiGateWay1下所有URL缓存10秒
+    urls {
+        "/url1" {
+            expires = 20000  // "/url1"的请求缓存20秒
+            required = ["sub", "password"]
+            methods = [HttpMethod.GET, HttpMethod.POST]
+            upstreamURLs = [
+                [
+                    host: 'localhost', port: 8080, url: '/url1',
+                    expires: 0  // 对此upstreamURL不启用缓存
+                ],
+                [
+                    host: 'localhost', port: 8081, url: '/url1'
+                ]  // 对此upstreamURL继承/url1的缓存配置，即20秒
+            ]
+        }
+        "/url2" {
+            expires = 15000  // 对于url2透传的后端，结果缓存15秒
+            relayTo {
+                host = 'localhost'
+                port = 8081
+            }
+        }
+        "/url3" {
+            /** SNIP **/
+            // 此URL的缓存配置沿用全局缓存配置，即10秒
+        }
+    }
+}
+~~~
+
+可配置`expires`的位置:
+- `apiGateway`，对该apiGateway下所有的URL配置统一的缓存过期时间
+- `url`，仅对此url规则中的所有upstreamURL或relayTo配置缓存策略。
+- `upstreamURLs`，仅对个别upstreamURL配置缓存策略
+- `expires = 0`表示此级别不启用缓存。
+
+> **NOTE**: JWT Token会影响缓存结果，不同的token获取到缓存内容会不同。
+
+> **NOTE**: 由于每个url的缓存过期时间可能不一样。因此，dgate的缓存内部实现是每个url单独一个cacheName，每个cacheName最大缓存条目1000，防止被恶意扫描导致缓存占满内存。
+
+## 日志级别
 默认情况下，dgate本身的日志将以`DEBUG`级别输出，其他第三方类库将以`WARN`级别输出。可以通过设置`DGATE_LOG_LEVEL`这个`System property`或环境变量覆盖这个默认值。
 
 例如:
 
-```bash
+~~~bash
 # 以下两种方式等效,如果同时设置，则system property优先使用
 java -DDGATE_LOG_LEVEL=WARN -jar dgate-0.1-fat.jar
 DGATE_LOG_LEVEL=WARN java -jar dgate-0.1-fat.jar
-```
+~~~

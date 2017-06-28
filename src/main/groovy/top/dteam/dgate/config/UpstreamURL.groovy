@@ -6,14 +6,15 @@ import io.vertx.circuitbreaker.CircuitBreakerOptions
 import io.vertx.core.json.JsonObject
 import top.dteam.dgate.gateway.SimpleResponse
 
-@EqualsAndHashCode(excludes = ['before', 'after', 'cbOptions'])
+@EqualsAndHashCode(excludes = ['before', 'after', 'circuitBreaker'])
 @CompileStatic
 class UpstreamURL {
 
     String host
     int port
     String url
-    CircuitBreakerOptions cbOptions
+    int expires = 0
+    CircuitBreakerOptions circuitBreaker
 
     Closure<JsonObject> before
     Closure<SimpleResponse> after
@@ -23,7 +24,7 @@ class UpstreamURL {
         verifyUrl(result) ?: '/'
     }
 
-    private List<String> getParamsFromUrl(String url) {
+    private static List<String> getParamsFromUrl(String url) {
         Arrays.asList(url.split('/')).findAll { part -> part.startsWith(':') }
     }
 
@@ -40,7 +41,7 @@ class UpstreamURL {
         result
     }
 
-    private String verifyUrl(String url) {
+    private static String verifyUrl(String url) {
         String result = url
 
         List<String> unresolvedParams = getParamsFromUrl(result)

@@ -53,7 +53,7 @@ public class RequestUtils {
         }
 
         if (data.getString("nameOfApiGateway") != null) {
-            request.putHeader(API_GATEWAY_NAME_HEADER, Base64.getEncoder().encodeToString(data.getString("nameOfApiGateway").toString().getBytes()));
+            request.putHeader(API_GATEWAY_NAME_HEADER, Base64.getEncoder().encodeToString(data.getString("nameOfApiGateway").getBytes()));
         }
 
         request.end(data.toString());

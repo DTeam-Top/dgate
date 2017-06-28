@@ -38,12 +38,13 @@ class ApiGatewayRepository {
         String name = key
         int port = body.port
         String host = body.host ?: '0.0.0.0'
+        int expires = body.expires ?: 0
         LoginConfig login = body.login ? buildLogin(body.login) : null
-        CorsConfig cors = buildCors(body.cors)
-        CircuitBreakerOptions defaultCBOptions = buildCircuitBreaker(body.circuitBreaker)
+        CorsConfig cors = buildCors(body.cors as Map)
+        CircuitBreakerOptions defaultCBOptions = buildCircuitBreaker(body.circuitBreaker as Map)
         List<UrlConfig> urlConfigs = new ArrayList<>()
         body.urls.keySet().each { url ->
-            urlConfigs << buildUrl(url, body.urls[url], defaultCBOptions)
+            urlConfigs << buildUrl(url, body.urls[url], defaultCBOptions, expires)
         }
 
         new ApiGatewayConfig(
@@ -75,35 +76,65 @@ class ApiGatewayRepository {
                 .setResetTimeout(circuitBreaker?.resetTimeout ?: 10000)
     }
 
-    private static UrlConfig buildUrl(def key, def body, CircuitBreakerOptions defaultCBOptions) {
+    private static UrlConfig buildUrl(
+            def key, def body, CircuitBreakerOptions defaultCBOptions, int defaultExpires = 0) {
         String url = key
+        int expires = body.expires != [:] ? body.expires : defaultExpires  // To avoid expires = 0 but defaultExpires != 0
         Object required = body.required ?: null
-        List<HttpMethod> methods = body.methods ?: []
+        List<HttpMethod> methods = (body.methods && body.methods instanceof List) ?
+                parseMethods(body.methods as List) : []
         Map expected = body.expected
         List<UpstreamURL> upstreamURLs = new ArrayList<>()
         body.upstreamURLs.each { upstreamURL ->
+            upstreamURL.expires = upstreamURL.expires != null ? upstreamURL.expires : expires
             CircuitBreakerOptions cbOptionsForUpstreamURL =
-                    upstreamURL.circuitBreaker ? buildCircuitBreaker(upstreamURL.circuitBreaker) : defaultCBOptions
+                    upstreamURL.circuitBreaker ?
+                            buildCircuitBreaker(upstreamURL.circuitBreaker as Map) :
+                            defaultCBOptions
 
-            upstreamURLs << new UpstreamURL(host: upstreamURL.host, port: upstreamURL.port, url: upstreamURL.url,
-                    before: upstreamURL.before, after: upstreamURL.after, cbOptions: cbOptionsForUpstreamURL)
+            upstreamURL << [circuitBreaker: cbOptionsForUpstreamURL]
+            upstreamURLs << new UpstreamURL(upstreamURL)
         }
 
         Map relayTo = body.relayTo
 
         if (expected) {
-            return new MockUrlConfig(url: url, required: required, methods: methods, expected: expected)
+            return new MockUrlConfig(url: url,
+                    required: required,
+                    methods: methods,
+                    expected: expected)
         } else if (upstreamURLs) {
-            return new ProxyUrlConfig(url: url, required: required, methods: methods, upstreamURLs: upstreamURLs)
+            return new ProxyUrlConfig(url: url,
+                    required: required,
+                    methods: methods,
+                    expires: expires,
+                    upstreamURLs: upstreamURLs)
         } else if (relayTo) {
             CircuitBreakerOptions cbOptionsForRelayTo =
                     relayTo.circuitBreaker ? buildCircuitBreaker(relayTo.circuitBreaker) : defaultCBOptions
-            return new RelayUrlConfig(url: url,
-                    relayTo: new RelayTo(host: relayTo.host, port: relayTo.port, cbOptions: cbOptionsForRelayTo))
+
+            relayTo << [circuitBreaker: cbOptionsForRelayTo]
+            return new RelayUrlConfig(url: url, expires: expires,
+                    relayTo: new RelayTo(relayTo))
         } else {
             throw new InvalidConfiguriationException('Unknown URL type!')
         }
 
     }
 
+    private static List<HttpMethod> parseMethods(List methods) {
+        List<HttpMethod> parsedMethods = []
+
+        methods.each {
+            if (it instanceof String) {
+                parsedMethods.add(HttpMethod.valueOf(it))
+            } else if (it instanceof HttpMethod) {
+                parsedMethods.add(it)
+            } else {
+                throw new InvalidConfiguriationException("Unknown method config '${it}'!")
+            }
+        }
+
+        parsedMethods
+    }
 }
