@@ -8,21 +8,31 @@ import org.apache.ignite.configuration.CacheConfiguration;
 
 import javax.cache.expiry.Duration;
 import javax.cache.expiry.ModifiedExpiryPolicy;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class ResponseHolder {
     private static final int MAX_ENTRY_PER_CACHE = 1000;
+    private static ConcurrentHashMap<String, CacheConfiguration<String
+            , JsonObject>> cacheCfgHolder = new ConcurrentHashMap<>();
 
     private static IgniteCache<String, JsonObject> getOrCreate(
             String apiGatewayName, String route, int expires) {
         String cacheName = cacheName(apiGatewayName, route);
-        CacheConfiguration<String, JsonObject> cacheCfg =
-                new CacheConfiguration<>(cacheName);
-        cacheCfg.setCacheMode(CacheMode.LOCAL);
-        cacheCfg.setExpiryPolicyFactory(ModifiedExpiryPolicy.factoryOf(
-                new Duration(TimeUnit.MILLISECONDS, expires)));
-        cacheCfg.setEagerTtl(false);
-        cacheCfg.setEvictionPolicy(new LruEvictionPolicy(MAX_ENTRY_PER_CACHE));
+
+        CacheConfiguration<String, JsonObject> cacheCfg;
+        if (cacheCfgHolder.contains(cacheName)) {
+            cacheCfg = cacheCfgHolder.get(cacheName);
+        } else {
+            cacheCfg = new CacheConfiguration<>(cacheName);
+            cacheCfg.setCacheMode(CacheMode.LOCAL);
+            cacheCfg.setExpiryPolicyFactory(ModifiedExpiryPolicy.factoryOf(
+                    new Duration(TimeUnit.MILLISECONDS, expires)));
+            cacheCfg.setEagerTtl(false);
+            cacheCfg.setEvictionPolicy(new LruEvictionPolicy(MAX_ENTRY_PER_CACHE));
+
+            cacheCfgHolder.put(cacheName, cacheCfg);
+        }
 
         return CacheLocator.getOrCreateCache(cacheCfg);
     }
