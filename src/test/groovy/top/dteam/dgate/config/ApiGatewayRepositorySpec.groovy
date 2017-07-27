@@ -145,13 +145,14 @@ class ApiGatewayRepositorySpec extends Specification {
         """
         SimpleResponse simpleResponse = new SimpleResponse([statusCode: 200, payload: new JsonObject([test: 'test'])])
         JsonObject jsonObject = new JsonObject([test: 'test'])
+        ApiGatewayRepository.respository.clear()
 
         when:
-        ApiGatewayRepository repository = ApiGatewayRepository.build(config)
+        ApiGatewayRepository.build(config)
 
         then:
-        repository.size() == 3
-        with(repository[0]) {
+        ApiGatewayRepository.respository.size() == 3
+        with(ApiGatewayRepository.respository[0]) {
             port == 7000
             name == 'apiGateway1'
             login.login() == '/login'
@@ -214,7 +215,7 @@ class ApiGatewayRepositorySpec extends Specification {
                 upstreamURLs[1].expires == 2000
             }
         }
-        with(repository[1]) {
+        with(ApiGatewayRepository.respository[1]) {
             port == 7001
             host == 'localhost'
             name == 'apiGateway2'
@@ -231,7 +232,7 @@ class ApiGatewayRepositorySpec extends Specification {
             urlConfigs[2].upstreamURLs[0].circuitBreaker.timeout == 3000
             urlConfigs[2].upstreamURLs[0].circuitBreaker.resetTimeout == 3000
         }
-        with(repository[2]) {
+        with(ApiGatewayRepository.respository[2]) {
             port == 7002
             host == '0.0.0.0'
             name == 'apiGateway3'

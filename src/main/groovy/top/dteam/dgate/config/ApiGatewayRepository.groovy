@@ -1,37 +1,40 @@
 package top.dteam.dgate.config
 
+import groovy.io.FileType
 import io.vertx.circuitbreaker.CircuitBreakerOptions
 import io.vertx.core.http.HttpMethod
 
 class ApiGatewayRepository {
 
     @Delegate
-    List<ApiGatewayConfig> respository
+    static List<ApiGatewayConfig> respository = new ArrayList<>()
 
-    ApiGatewayRepository() {
-        this.respository = new ArrayList<>()
-    }
+    static void load(String file = System.getProperty('conf')) {
+        respository.clear()
 
-    static ApiGatewayRepository load(String file = System.getProperty('conf')) {
         if (!file) {
             throw new FileNotFoundException("Please set config file first!")
         }
 
-        String config
-        config = new File(file).text
-        build(config)
+        File f = new File(file)
+        if (f.isFile()) {
+            build(f.text)
+        } else if (f.isDirectory()) {
+            // Matching files' name end with .conf, treat as config files.
+            f.eachFileMatch(FileType.FILES, ~/.*\.conf$/) {
+                build(it.text)
+            }
+        } else {
+            throw new FileNotFoundException("No such file or directory: ${file}")
+        }
     }
 
-    static ApiGatewayRepository build(String config) {
-        ApiGatewayRepository apiGatewayRepository = new ApiGatewayRepository()
-
+    static void build(String config) {
         ConfigSlurper slurper = new ConfigSlurper()
         ConfigObject configObject = slurper.parse(config)
         configObject.keySet().each { apiGateway ->
-            apiGatewayRepository.respository << buildApiGateway(apiGateway, configObject[apiGateway])
+            respository << buildApiGateway(apiGateway, configObject[apiGateway])
         }
-
-        apiGatewayRepository
     }
 
     private static ApiGatewayConfig buildApiGateway(def key, def body) {

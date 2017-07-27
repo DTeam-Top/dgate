@@ -6,7 +6,7 @@ dgate是基于Vertx的API Gateway。运行dgate的命令如下：
 java -jar dgate-version-fat.jar -Dconf=conf
 ~~~
 
-其中的conf属性用来指定运行所需的配置文件。（若配置文件中包含有login配置，在启动时需要先设置环境变量，请参见JWT部分。）
+其中的conf属性用来指定运行所需的配置文件或文件夹，如果conf属性为文件夹，则dgate加载该文件夹内后缀为`.conf`的文件作为配置文件，每个文件必须是可独立加载的配置文件。（若配置文件中包含有login配置，在启动时需要先设置环境变量，请参见JWT部分。）
 
 ## conf的文件格式
 

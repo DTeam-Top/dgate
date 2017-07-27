@@ -180,7 +180,9 @@ class JWTHandlerSpec extends Specification {
     }
 
     private void deployGate() {
-        vertx.deployVerticle(new ApiGateway(ApiGatewayRepository.build(config)[0]))
+        ApiGatewayRepository.respository.clear()
+        ApiGatewayRepository.build(config)
+        vertx.deployVerticle(new ApiGateway(ApiGatewayRepository.respository[0]))
     }
 
     private HttpServer createDest() {
