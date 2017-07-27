@@ -81,8 +81,9 @@ class ProxyHandlerWithCacheSpec extends Specification {
         Vertx.clusteredVertx(new VertxOptions(), { res ->
             if (res.succeeded()) {
                 vertx = res.result()
-                ApiGatewayRepository repository = ApiGatewayRepository.build(CONFIG)
-                repository.each {
+                ApiGatewayRepository.respository.clear()
+                ApiGatewayRepository.build(CONFIG)
+                ApiGatewayRepository.respository.each {
                     vertx.deployVerticle(new ApiGateway(it))
                 }
 

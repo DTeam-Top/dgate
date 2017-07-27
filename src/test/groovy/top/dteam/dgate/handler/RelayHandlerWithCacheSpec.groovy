@@ -80,8 +80,9 @@ class RelayHandlerWithCacheSpec extends Specification {
                 requestUtils = new RequestUtils(vertx)
                 mockServer = createMock()
                 destServer = createDest()
-                ApiGatewayRepository repository = ApiGatewayRepository.build(CONFIG)
-                repository.each {
+                ApiGatewayRepository.respository.clear()
+                ApiGatewayRepository.build(CONFIG)
+                ApiGatewayRepository.respository.each {
                     vertx.deployVerticle(new ApiGateway(it))
                 }
 

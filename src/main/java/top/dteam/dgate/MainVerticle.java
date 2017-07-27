@@ -12,8 +12,8 @@ public class MainVerticle extends AbstractVerticle {
     public void start() {
         vertx.deployVerticle(new CircuitBreakerMonitor());
 
-        ApiGatewayRepository repository = ApiGatewayRepository.load();
-        repository.getRespository().stream()
+        ApiGatewayRepository.load();
+        ApiGatewayRepository.getRespository().stream()
                 .forEach(apiGatewayConfig -> vertx.deployVerticle(new ApiGateway(apiGatewayConfig)));
 
     }
