@@ -17,9 +17,4 @@ public class MainVerticle extends AbstractVerticle {
                 .forEach(apiGatewayConfig -> vertx.deployVerticle(new ApiGateway(apiGatewayConfig)));
 
     }
-
-    @Override
-    public void stop() {
-        CacheLocator.close();
-    }
 }
