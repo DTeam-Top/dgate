@@ -69,6 +69,8 @@ public class RelayHandler implements GatewayRequestHandler {
 
                 relay.headers().addAll(request.headers());
 
+                RequestUtils.putProxyHeaders(relay, request);
+
                 putJwtTokenToHeader(relay, routingContext);
                 putNameOfApiGatewayInBody(relay, nameOfApiGateway);
 

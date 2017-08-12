@@ -13,8 +13,7 @@ class SimpleResponse {
 
     JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject()
-        jsonObject.put("statusCode", statusCode)
-        jsonObject.put("payload", payload)
+        jsonObject.put("statusCode", statusCode).put("payload", payload)
 
         jsonObject
     }
