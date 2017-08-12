@@ -1,11 +1,5 @@
 package top.dteam.dgate
 
-import top.dteam.dgate.config.ApiGatewayRepository
-import top.dteam.dgate.gateway.ApiGateway
-import top.dteam.dgate.gateway.SimpleResponse
-import top.dteam.dgate.utils.RequestUtils
-import top.dteam.dgate.utils.TestUtils
-import top.dteam.dgate.utils.Utils
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServer
@@ -14,6 +8,12 @@ import io.vertx.ext.web.Router
 import spock.lang.Specification
 import spock.lang.Stepwise
 import spock.lang.Unroll
+import top.dteam.dgate.config.ApiGatewayRepository
+import top.dteam.dgate.gateway.ApiGateway
+import top.dteam.dgate.gateway.SimpleResponse
+import top.dteam.dgate.utils.RequestUtils
+import top.dteam.dgate.utils.TestUtils
+import top.dteam.dgate.utils.Utils
 
 @Stepwise
 class ApiGatewayIntegationSpec extends Specification {

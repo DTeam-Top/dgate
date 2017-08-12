@@ -44,10 +44,19 @@ public class RequestUtils {
         request(HttpMethod.DELETE, host, port, url, data, handler);
     }
 
-    public void request(HttpMethod method, String host, int port, String url, JsonObject data, Handler<SimpleResponse> handler) {
+    public void request(HttpMethod method, String host, int port, String url
+            , JsonObject data, Handler<SimpleResponse> handler) {
+        request(method, host, port, url, data, null, handler);
+    }
+
+    public void request(HttpMethod method, String host, int port, String url
+            , JsonObject data, HttpServerRequest clientRequest, Handler<SimpleResponse> handler) {
         HttpClientRequest request = httpClient.request(method, port, host, url, defaultResponseHandler(handler))
                 .setChunked(true)
                 .putHeader("content-type", "application/json");
+
+        putProxyHeaders(request, clientRequest);
+
         if (data.getJsonObject("token") != null) {
             request.putHeader(JWT_HEADER, Base64.getEncoder().encodeToString(data.getJsonObject("token").toString().getBytes()));
         }
@@ -66,6 +75,33 @@ public class RequestUtils {
                 .putHeader("content-type", "application/json")
                 .putHeader("Authorization", String.format("Bearer %s", token))
                 .end(data.toString());
+    }
+
+    public static void putProxyHeaders(HttpClientRequest proxyRequest, HttpServerRequest clientRequest) {
+        if (clientRequest != null) {
+            if (clientRequest.getHeader("User-Agent") != null) {
+                proxyRequest.putHeader("User-Agent"
+                        , clientRequest.getHeader("User-Agent"));
+            }
+
+            if (clientRequest.getHeader("X-Real-IP") != null) {
+                proxyRequest.putHeader("X-Real-IP", clientRequest.getHeader("X-Real-IP"));
+            } else {
+                proxyRequest.putHeader("X-Real-IP"
+                        , clientRequest.remoteAddress().host());
+            }
+
+            if (clientRequest.getHeader("X-Forwarded-For") != null) {
+                proxyRequest.putHeader("X-Forwarded-For"
+                        , clientRequest.getHeader("X-Forwarded-For")
+                                + "," + clientRequest.remoteAddress().host());
+            } else {
+                proxyRequest.putHeader("X-Forwarded-For", clientRequest.remoteAddress().host());
+            }
+
+            proxyRequest.putHeader("X-Forwarded-Host", clientRequest.host())
+                    .putHeader("X-Forwarded-Proto", clientRequest.scheme());
+        }
     }
 
     public HttpClientRequest relay(HttpMethod method, String host, int port, String url, Handler<SimpleResponse> handler) {

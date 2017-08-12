@@ -3,7 +3,6 @@ package top.dteam.dgate.handler;
 import groovy.lang.Closure;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
@@ -57,7 +56,7 @@ public class ProxyHandler extends RequestHandler {
         List<CompletableFuture<SimpleResponse>> completableFutures = new ArrayList<>();
         upstreamURLs.forEach(upStreamURL -> {
             CompletableFuture<SimpleResponse> completableFuture = new CompletableFuture<>();
-            partialRequest(request.method(), upStreamURL, body, completableFuture);
+            partialRequest(request, upStreamURL, body, completableFuture);
             completableFutures.add(completableFuture);
         });
 
@@ -84,7 +83,7 @@ public class ProxyHandler extends RequestHandler {
         }
     }
 
-    private void partialRequest(HttpMethod method, UpstreamURL upstreamURL, JsonObject params,
+    private void partialRequest(HttpServerRequest clientRequest, UpstreamURL upstreamURL, JsonObject params,
                                 CompletableFuture<SimpleResponse> completableFuture) {
         try {
             String requestURI = upstreamURL.resolve(params);
@@ -108,9 +107,9 @@ public class ProxyHandler extends RequestHandler {
                 if (upstreamURL.getBefore() != null && beforeContext != null) {
                     upstreamURL.getBefore().setDelegate(beforeContext);
                 }
-                requestUtils.request(method,
+                requestUtils.request(clientRequest.method(),
                         upstreamURL.getHost(), upstreamURL.getPort(), requestURI,
-                        processParamsIfBeforeHandlerExists(upstreamURL.getBefore(), params),
+                        processParamsIfBeforeHandlerExists(upstreamURL.getBefore(), params), clientRequest,
                         simpleResponse -> {
                             Map afterContext = createAfterContext();
                             if (upstreamURL.getAfter() != null && afterContext != null) {
