@@ -545,3 +545,14 @@ apiGateway1 {
 java -DDGATE_LOG_LEVEL=WARN -jar dgate-0.1-fat.jar
 DGATE_LOG_LEVEL=WARN java -jar dgate-0.1-fat.jar
 ~~~
+
+## 集群
+默认情况下，dgate以单节点模式运行。如果希望让dgate以跨主机集群模式运行，需要指定环境变量`DGATE_CLUSTER_NODES`，如`192.168.1.2,192.168.1.3`，相关文档参考[ignite集群配置](https://apacheignite.readme.io/docs/cluster-config#static-ip-based-discovery)。
+
+> **NOTE**: 以集群方式运行dgate，需要所有dgate实例配置相同的`DGATE_CLUSTER_NODES`环境变量。
+
+Example:
+~~~bash
+export DGATE_CLUSTER_NODES=192.168.1.2,192.168.1.3   # 集群ip以逗号分割
+java -jar dgate-0.1-fat.jar -Dconf=/path/to/config.conf
+~~~

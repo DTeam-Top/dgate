@@ -106,7 +106,7 @@ class CircuitBreakerSpec extends Specification {
         requestUtils.post("localhost", 7000, url, new JsonObject()) { simpleResponse ->
             result = simpleResponse
         }
-        TestUtils.waitResult(result, DEFAULT_OP_TIMEOUT + 500)
+        TestUtils.waitResult(result, DEFAULT_OP_TIMEOUT + 1000)
 
         then:
         result.statusCode == 500
