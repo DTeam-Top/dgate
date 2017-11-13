@@ -1,7 +1,7 @@
 package top.dteam.dgate.handler;
 
 import io.vertx.core.Handler;
-import io.vertx.ext.auth.jwt.JWT;
+import io.vertx.ext.jwt.JWT;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
