@@ -2,7 +2,7 @@ package top.dteam.dgate.utils;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.jwt.JWT;
+import io.vertx.ext.jwt.JWT;
 
 public class JWTTokenRefresher {
 

@@ -8,7 +8,8 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.jwt.JWT;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.jwt.JWT;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class Utils {
     }
 
     public static JWTAuth createAuthProvider(Vertx vertx) {
-        return JWTAuth.create(vertx, jwtOptions());
+        return JWTAuth.create(vertx, new JWTAuthOptions(jwtOptions()));
     }
 
     // extracted from constructor of JWTAuthProviderImpl

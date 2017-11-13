@@ -15,7 +15,6 @@ import top.dteam.dgate.utils.RequestUtils
 import top.dteam.dgate.utils.TestUtils
 import top.dteam.dgate.utils.Utils
 import top.dteam.dgate.utils.cache.CacheLocator
-import top.dteam.dgate.utils.cache.ResponseHolder
 
 import java.time.ZonedDateTime
 

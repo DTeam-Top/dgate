@@ -23,6 +23,7 @@ public class ResponseHolder {
                 new Duration(TimeUnit.MILLISECONDS, expires)));
         cacheCfg.setEagerTtl(false);
         cacheCfg.setEvictionPolicy(new LruEvictionPolicy(MAX_ENTRY_PER_CACHE));
+        cacheCfg.setOnheapCacheEnabled(true);
 
         return CacheLocator.getOrCreateCache(cacheCfg);
     }

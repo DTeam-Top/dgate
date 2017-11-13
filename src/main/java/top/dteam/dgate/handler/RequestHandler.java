@@ -50,6 +50,7 @@ public abstract class RequestHandler implements GatewayRequestHandler {
         return urlConfig.getMethods();
     }
 
+    @Override
     public GatewayRequestHandler nameOfApiGateway(String nameOfApiGateway) {
         this.nameOfApiGateway = nameOfApiGateway;
         return this;
