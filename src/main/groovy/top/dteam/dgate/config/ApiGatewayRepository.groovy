@@ -49,6 +49,7 @@ class ApiGatewayRepository {
         body.urls.keySet().each { url ->
             urlConfigs << buildUrl(url, body.urls[url], defaultCBOptions, expires)
         }
+        EventBusBridgeConfig eventBusBridgeConfig = buildEventBusBridge(body.eventBusBridge as Map)
 
         new ApiGatewayConfig(
                 name: name,
@@ -56,7 +57,8 @@ class ApiGatewayRepository {
                 host: host,
                 urlConfigs: urlConfigs,
                 login: login,
-                cors: cors
+                cors: cors,
+                eventBusBridgeConfig: eventBusBridgeConfig
         )
     }
 
@@ -82,7 +84,8 @@ class ApiGatewayRepository {
     private static UrlConfig buildUrl(
             def key, def body, CircuitBreakerOptions defaultCBOptions, int defaultExpires = 0) {
         String url = key
-        int expires = body.expires != [:] ? body.expires : defaultExpires  // To avoid expires = 0 but defaultExpires != 0
+        int expires = body.expires != [:] ? body.expires : defaultExpires
+        // To avoid expires = 0 but defaultExpires != 0
         Object required = body.required ?: null
         List<HttpMethod> methods = (body.methods && body.methods instanceof List) ?
                 parseMethods(body.methods as List) : []
@@ -139,5 +142,30 @@ class ApiGatewayRepository {
         }
 
         parsedMethods
+    }
+
+    private static EventBusBridgeConfig buildEventBusBridge(Map eventBusBridge) {
+        if (!eventBusBridge) {
+            null
+        } else {
+            EventBusBridgeConfig config = new EventBusBridgeConfig()
+
+            if (eventBusBridge.urlPattern && eventBusBridge.consumers) {
+                config.urlPattern = eventBusBridge.urlPattern
+                config.consumers = new ArrayList<>()
+                eventBusBridge.consumers.keySet().each { address ->
+                    config.consumers << new Consumer(
+                            address: address,
+                            target: eventBusBridge.consumers."$address".target ?: null,
+                            expected: eventBusBridge.consumers."$address".expected,
+                            timer: eventBusBridge.consumers."$address".timer ?: 0
+                    )
+                }
+            } else {
+                throw new InvalidConfiguriationException('no URL Pattern or Consumers in EventBusBridge!')
+            }
+
+            config
+        }
     }
 }

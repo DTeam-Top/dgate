@@ -141,6 +141,23 @@ class ApiGatewayRepositorySpec extends Specification {
                         }
                     }
                 }
+                eventBusBridge {
+                    urlPattern = '/eventbus/*'
+                    consumers {
+                        'address1' {
+                            expected = [test1: 1]
+                        }
+            
+                        'address2' {
+                            target = 'target'
+                            expected = [test2: 2]
+                        }
+                        'address3' {
+                            timer = 1000
+                            expected = [test3: 3]
+                        }
+                    }
+                }
             }
         """
         SimpleResponse simpleResponse = new SimpleResponse([statusCode: 200, payload: new JsonObject([test: 'test'])])
@@ -256,6 +273,23 @@ class ApiGatewayRepositorySpec extends Specification {
             urlConfigs[3].relayTo.circuitBreaker.timeout == 3000
             urlConfigs[3].relayTo.circuitBreaker.resetTimeout == 3000
             urlConfigs[3].expires == 0
+            with(eventBusBridgeConfig) {
+                urlPattern == '/eventbus/*'
+                consumers.size == 3
+                consumers[0].address == 'address1'
+                !consumers[0].target
+                consumers[0].expected == [test1: 1]
+                consumers[0].timer == 0
+                consumers[1].address == 'address2'
+                consumers[1].target == 'target'
+                consumers[1].expected == [test2: 2]
+                consumers[1].timer == 0
+                consumers[2].address == 'address3'
+                !consumers[2].target
+                consumers[2].expected == [test3: 3]
+                consumers[2].timer == 1000
+
+            }
         }
     }
 

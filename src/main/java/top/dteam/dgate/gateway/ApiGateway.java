@@ -1,11 +1,23 @@
 package top.dteam.dgate.gateway;
 
+import groovy.lang.Closure;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.bridge.PermittedOptions;
+import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import top.dteam.dgate.config.ApiGatewayConfig;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.dteam.dgate.config.Consumer;
+import top.dteam.dgate.config.EventBusBridgeConfig;
+
+import java.util.List;
+import java.util.Map;
 
 public class ApiGateway extends AbstractVerticle {
 
@@ -20,12 +32,54 @@ public class ApiGateway extends AbstractVerticle {
     @Override
     public void start() {
         HttpServer httpServer = vertx.createHttpServer();
-        Router router = RouterBuilder.builder(vertx, config);
+        Router router = RouterBuilder.build(vertx, config);
+
+        EventBusBridgeConfig eventBusBridgeConfig = config.getEventBusBridgeConfig();
+        if (eventBusBridgeConfig != null) {
+            buildEventBusBridge(eventBusBridgeConfig.getUrlPattern(), router);
+        }
+
         httpServer.requestHandler(router::accept).listen(config.getPort(), config.getHost(), result -> {
             if (result.succeeded()) {
+                if (eventBusBridgeConfig != null) {
+                    registerConsumers(eventBusBridgeConfig.getConsumers());
+                }
+
                 logger.info("API Gateway {} is listening at {}:{} ...",
                         config.getName(), config.getHost(), config.getPort());
             }
         });
+    }
+
+    private void buildEventBusBridge(String urlPattern, Router router) {
+        SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+        PermittedOptions allAllowed = new PermittedOptions().setAddressRegex(".*");
+        router.route(urlPattern).handler(sockJSHandler.bridge(new BridgeOptions()
+                .addInboundPermitted(allAllowed)
+                .addOutboundPermitted(allAllowed)));
+    }
+
+    private void registerConsumers(List<Consumer> consumers) {
+        EventBus eventBus = vertx.eventBus();
+        consumers.forEach(consumer -> eventBus.consumer(consumer.getAddress(), message -> {
+            if (consumer.getTarget() == null) { // timer not supported under reply mode
+                message.reply(transformIfNeeded(consumer.getExpected(), message));
+            } else {
+                if (consumer.getTimer() > 0) {
+                    vertx.setPeriodic(consumer.getTimer(), tid -> eventBus.publish(consumer.getTarget()
+                            , transformIfNeeded(consumer.getExpected(), message)));
+                }else {
+                    eventBus.publish(consumer.getTarget(), transformIfNeeded(consumer.getExpected(), message));
+                }
+            }
+        }));
+    }
+
+    private JsonObject transformIfNeeded(Object expected, Message<Object> message) {
+        if (expected instanceof Closure) {
+            return new JsonObject((Map<String, Object>) ((Closure) expected).call(message));
+        } else {
+            return new JsonObject((Map<String, Object>) expected);
+        }
     }
 }

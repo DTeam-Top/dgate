@@ -24,7 +24,7 @@ public class RouterBuilder {
 
     private static final Logger logger = LoggerFactory.getLogger(RouterBuilder.class);
 
-    public static Router builder(Vertx vertx, ApiGatewayConfig apiGatewayConfig) {
+    public static Router build(Vertx vertx, ApiGatewayConfig apiGatewayConfig) {
         Router router = Router.router(vertx);
         addCorsHandler(router, apiGatewayConfig);
         addBodyHandlerExceptRelayTo(router, apiGatewayConfig);

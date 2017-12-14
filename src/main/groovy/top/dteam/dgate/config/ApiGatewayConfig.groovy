@@ -11,5 +11,6 @@ class ApiGatewayConfig {
     LoginConfig login
     CorsConfig cors
     List<UrlConfig> urlConfigs
+    EventBusBridgeConfig eventBusBridgeConfig
 
 }

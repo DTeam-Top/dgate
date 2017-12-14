@@ -22,16 +22,30 @@ class ConfPropertySpec extends Specification {
 
         then:
         ApiGatewayRepository.respository.size() == 2
-        with(ApiGatewayRepository.respository[0]) {
-            name == 'gateway1'
-            port == 7001
-            host == '0.0.0.0'
+        if(ApiGatewayRepository.respository[0].name == 'gateway1') {
+            with(ApiGatewayRepository.respository[0]) {
+                name == 'gateway1'
+                port == 7001
+                host == '0.0.0.0'
+            }
+            with(ApiGatewayRepository.respository[1]) {
+                name == 'gateway3'
+                port == 7003
+                host == '0.0.0.0'
+            }
+        }else {
+            with(ApiGatewayRepository.respository[0]) {
+                name == 'gateway3'
+                port == 7003
+                host == '0.0.0.0'
+            }
+            with(ApiGatewayRepository.respository[1]) {
+                name == 'gateway1'
+                port == 7001
+                host == '0.0.0.0'
+            }
         }
-        with(ApiGatewayRepository.respository[1]) {
-            name == 'gateway3'
-            port == 7003
-            host == '0.0.0.0'
-        }
+
     }
 
     def "conf property should throw NoSuchFileException if no such file or directory"() {
