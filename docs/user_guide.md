@@ -558,7 +558,7 @@ java -jar dgate-0.1-fat.jar -Dconf=/path/to/config.conf
 ~~~
 
 ## Mock EventBusBridge
-为了简化前端和后端基于Vert.x Web EventBusBridge交互的调试，dgate提供了对这种交互方式的模拟。对应的DSL例子如下：
+为了简化前端和后端基于Vert.x Web EventBusBridge交互的调试，dgate提供了对这种交互方式的模拟。对应的DSL例子如下：
 
 ~~~
 apiGateway {
@@ -586,8 +586,8 @@ apiGateway {
 ~~~
 
 语法很简单，与Mock HTTP几乎一致。其中：
-- publishers，对应后端主动发起的推送，对于每一个推送地址，timer必填，单位为毫秒。
-- consumers，对应后端接收前端消息的消费者。
+- publishers，对应后端主动发起的推送，对于每一个推送地址，timer必填，单位为毫秒。
+- consumers，对应后端接收前端消息的消费者。
   - 若target不写，则对应的模式为：message.reply
   - 若给出target，则对应eventbus.publish
 
