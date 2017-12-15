@@ -152,13 +152,22 @@ class ApiGatewayRepository {
 
             if (eventBusBridge.urlPattern && eventBusBridge.consumers) {
                 config.urlPattern = eventBusBridge.urlPattern
+
+                config.publishers = new ArrayList<>()
+                eventBusBridge.publishers.keySet().each { target ->
+                    config.publishers << new Publisher(
+                            target: target,
+                            expected: eventBusBridge.publishers."$target".expected,
+                            timer: eventBusBridge.publishers."$target".timer
+                    )
+                }
+
                 config.consumers = new ArrayList<>()
                 eventBusBridge.consumers.keySet().each { address ->
                     config.consumers << new Consumer(
                             address: address,
                             target: eventBusBridge.consumers."$address".target ?: null,
                             expected: eventBusBridge.consumers."$address".expected,
-                            timer: eventBusBridge.consumers."$address".timer ?: 0
                     )
                 }
             } else {

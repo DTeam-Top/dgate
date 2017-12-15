@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.dteam.dgate.config.Consumer;
 import top.dteam.dgate.config.EventBusBridgeConfig;
+import top.dteam.dgate.config.Publisher;
 
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,9 @@ public class ApiGateway extends AbstractVerticle {
         httpServer.requestHandler(router::accept).listen(config.getPort(), config.getHost(), result -> {
             if (result.succeeded()) {
                 if (eventBusBridgeConfig != null) {
-                    registerConsumers(eventBusBridgeConfig.getConsumers());
+                    EventBus eventBus = vertx.eventBus();
+                    registerConsumers(eventBus, eventBusBridgeConfig.getConsumers());
+                    registerPublishers(eventBus, eventBusBridgeConfig.getPublishers());
                 }
 
                 logger.info("API Gateway {} is listening at {}:{} ...",
@@ -59,27 +62,34 @@ public class ApiGateway extends AbstractVerticle {
                 .addOutboundPermitted(allAllowed)));
     }
 
-    private void registerConsumers(List<Consumer> consumers) {
-        EventBus eventBus = vertx.eventBus();
+    private void registerConsumers(EventBus eventBus, List<Consumer> consumers) {
         consumers.forEach(consumer -> eventBus.consumer(consumer.getAddress(), message -> {
-            if (consumer.getTarget() == null) { // timer not supported under reply mode
+            if (consumer.getTarget() == null) {
                 message.reply(transformIfNeeded(consumer.getExpected(), message));
             } else {
-                if (consumer.getTimer() > 0) {
-                    vertx.setPeriodic(consumer.getTimer(), tid -> eventBus.publish(consumer.getTarget()
-                            , transformIfNeeded(consumer.getExpected(), message)));
-                }else {
-                    eventBus.publish(consumer.getTarget(), transformIfNeeded(consumer.getExpected(), message));
-                }
+                eventBus.publish(consumer.getTarget(), transformIfNeeded(consumer.getExpected(), message));
             }
         }));
     }
 
+    private void registerPublishers(EventBus eventBus, List<Publisher> publishers) {
+        publishers.forEach(publisher ->
+                vertx.setPeriodic(publisher.getTimer(), tid -> eventBus.publish(publisher.getTarget()
+                        , transformIfNeeded(publisher.getExpected(), null)))
+        );
+    }
+
     private JsonObject transformIfNeeded(Object expected, Message<Object> message) {
+        JsonObject result;
         if (expected instanceof Closure) {
-            return new JsonObject((Map<String, Object>) ((Closure) expected).call(message));
+            result = (message == null) ? new JsonObject((Map) ((Closure) expected).call())
+                    : new JsonObject((Map) ((Closure) expected).call(message));
         } else {
-            return new JsonObject((Map<String, Object>) expected);
+            result = new JsonObject((Map) expected);
         }
+
+        logger.debug("{}", result);
+
+        return result;
     }
 }

@@ -35,7 +35,7 @@ apiGateway {
 dgate的主要特性：
 - 轻量级配置，无需后端DB
 - DSL为groovy语法
-- 支持mock
+- 支持mock：HTTP和EventBusBridge
 - 支持url的转发和组合（即一个外部url对应后端多个url），并支持before（向后端发送请求前）和after（收到后端全部响应后）闭包。
 - 支持request透传：form和upload用这种模式。
 - 支持URL Path Parameters

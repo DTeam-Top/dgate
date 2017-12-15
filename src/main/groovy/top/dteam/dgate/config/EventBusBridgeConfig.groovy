@@ -6,6 +6,7 @@ import groovy.transform.CompileStatic
 class EventBusBridgeConfig {
 
     String urlPattern
+    List<Publisher> publishers
     List<Consumer> consumers
 
 }

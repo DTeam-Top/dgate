@@ -28,7 +28,7 @@ public class RouterBuilder {
         Router router = Router.router(vertx);
         addCorsHandler(router, apiGatewayConfig);
         addBodyHandlerExceptRelayTo(router, apiGatewayConfig);
-        addJWTTokenSniffer(vertx, router);
+        addJWTTokenSniffer(vertx, router, apiGatewayConfig);
         addRequestHandlers(vertx, router, apiGatewayConfig);
         addFailureHandler(router);
         return router;
@@ -71,8 +71,10 @@ public class RouterBuilder {
         });
     }
 
-    private static void addJWTTokenSniffer(Vertx vertx, Router router) {
-        router.route().handler(new JWTTokenSniffer(Utils.createJWT(vertx)));
+    private static void addJWTTokenSniffer(Vertx vertx, Router router, ApiGatewayConfig apiGatewayConfig) {
+        if (apiGatewayConfig.getLogin() != null) {
+            router.route().handler(new JWTTokenSniffer(Utils.createJWT(vertx)));
+        }
     }
 
     private static void addRequestHandlers(Vertx vertx, Router router, ApiGatewayConfig apiGatewayConfig) {

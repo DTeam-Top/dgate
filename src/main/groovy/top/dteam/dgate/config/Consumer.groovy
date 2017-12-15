@@ -8,6 +8,5 @@ class Consumer {
     String address
     String target
     Object expected
-    long timer
 
 }

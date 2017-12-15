@@ -556,3 +556,39 @@ Example:
 export DGATE_CLUSTER_NODES=192.168.1.2,192.168.1.3   # 集群ip以逗号分割
 java -jar dgate-0.1-fat.jar -Dconf=/path/to/config.conf
 ~~~
+
+## Mock EventBusBridge
+为了简化前端和后端基于Vert.x Web EventBusBridge交互的调试，dgate提供了对这种交互方式的模拟。对应的DSL例子如下：
+
+~~~
+apiGateway {
+    port = 7001
+    host = 'localhost'
+
+    eventBusBridge {
+        urlPattern ='/eventbus/*'
+        publishers {
+            'target_address' {
+                expected = {
+                    [timestamp: Instant.now()]
+                }
+                timer = 1000
+            }
+        }
+        consumers {
+            'consumer_address' {
+                target = "target_address"
+                expected = [test: true] // 或者 {message -> ...}
+            }
+        }
+    }
+}
+~~~
+
+语法很简单，与Mock HTTP几乎一致。其中：
+- publishers，对应后端主动发起的推送，对于每一个推送地址，timer必填，单位为毫秒。
+- consumers，对应后端接收前端消息的消费者。
+  - 若target不写，则对应的模式为：message.reply
+  - 若给出target，则对应eventbus.publish
+
+对于expected，它即可以为一个固定的值，也可以为一个闭包。当为闭包时，其返回值为mock结果。同时，对于consumers中的expected，闭包的入参为event message。
