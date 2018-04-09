@@ -592,3 +592,9 @@ apiGateway {
   - 若给出target，则对应eventbus.publish
 
 对于expected，它即可以为一个固定的值，也可以为一个闭包。当为闭包时，其返回值为mock结果。同时，对于consumers中的expected，闭包的入参为event message。
+
+## 友情支持
+
+如果觉得我们的工具对您有帮助，可以考虑支持我们，;)
+
+![情怀支持](zanshang.jpg)

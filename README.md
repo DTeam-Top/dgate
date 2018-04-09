@@ -55,3 +55,9 @@ dgate的主要特性：
 - gradle test，运行测试代码
 
 在发起Pull Request时，请同时提交测试代码，并保证现有测试代码【对于测试，我们推荐[Spock](http://spockframework.org/)】能全部通过，;)。
+
+## 友情支持
+
+如果觉得我们的工具对您有帮助，可以考虑支持我们，;)
+
+![情怀支持](docs/zanshang.jpg)
