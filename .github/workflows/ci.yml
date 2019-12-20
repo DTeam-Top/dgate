@@ -1,0 +1,33 @@
+name: CI
+
+on: [push, pull_request, release]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/cache@v1
+      with:
+        path: ~/.gradle/caches
+        key: dgate-gradle-cache
+    - uses: actions/setup-java@v1
+      with:
+        java-version: 8
+    - uses: eskatos/gradle-command-action@v1
+      with:
+        arguments: -i --no-daemon shadowJar
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/cache@v1
+      with:
+        path: ~/.gradle/caches
+        key: dgate-gradle-cache
+    - uses: actions/setup-java@v1
+      with:
+        java-version: 8
+    - uses: eskatos/gradle-command-action@v1
+      with:
+        arguments: -i --no-daemon test --fail-fast
