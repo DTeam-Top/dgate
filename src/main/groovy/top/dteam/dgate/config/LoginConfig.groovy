@@ -6,7 +6,7 @@ import groovy.transform.CompileStatic
 class LoginConfig {
 
     static long DEFAULT_REFRESH_LIMIT = 30 * 60
-    static long DEFAULT_REFRESH_EXPIRE = 30 * 60
+    static int DEFAULT_REFRESH_EXPIRE = 30 * 60
 
     private String url
     private Map config
@@ -45,8 +45,8 @@ class LoginConfig {
         (long) (config?.refreshLimit ?: DEFAULT_REFRESH_LIMIT)
     }
 
-    long refreshExpire() {
-        (long) (config?.refreshExpire ?: DEFAULT_REFRESH_EXPIRE)
+    int refreshExpire() {
+        (int) (config?.refreshExpire ?: DEFAULT_REFRESH_EXPIRE)
     }
 
 }

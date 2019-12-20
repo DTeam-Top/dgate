@@ -8,10 +8,11 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.jwt.JWT;
-import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class Utils {
         response.setStatusCode(statusCode).end(message);
     }
 
-    public static void fireJsonResponse(HttpServerResponse response, int statusCode, Map payload) {
+    public static void fireJsonResponse(HttpServerResponse response, int statusCode, Map<String, Object> payload) {
         response.setStatusCode(statusCode);
         JsonObject jsonObject = new JsonObject(payload);
         response.putHeader("content-type", "application/json; charset=utf-8").end(jsonObject.toString());
@@ -110,7 +111,7 @@ public class Utils {
         return null;
     }
 
-    public static void addHandlerExcept(List<String> all, List<String> ignore, Router router, Handler handler) {
+    public static void addHandlerExcept(List<String> all, List<String> ignore, Router router, Handler<RoutingContext> handler) {
         all.removeAll(ignore);
         all.forEach(url -> router.route(url).handler(handler));
     }

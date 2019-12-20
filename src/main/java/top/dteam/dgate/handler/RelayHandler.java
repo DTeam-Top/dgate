@@ -75,7 +75,7 @@ public class RelayHandler implements GatewayRequestHandler {
                 putNameOfApiGatewayInBody(relay, nameOfApiGateway);
 
                 Pump pump = Pump.pump(request, relay);
-                request.endHandler(Void -> relay.end());
+                request.endHandler(end -> relay.end());
                 pump.start();
             }).setHandler(result -> {
                 SimpleResponse simpleResponse;

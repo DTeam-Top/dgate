@@ -28,7 +28,7 @@ public class Launcher extends io.vertx.core.Launcher {
     public void beforeStartingVertx(VertxOptions options) {
         System.setProperty("IGNITE_NO_SHUTDOWN_HOOK", "true");
         options.setClusterManager(new IgniteClusterManager(igniteConfiguration()));
-        options.setClustered(true);
+        options.getEventBusOptions().setClustered(true);
     }
 
     @Override
