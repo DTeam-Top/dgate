@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.util.concurrent.PollingConditions
 import top.dteam.dgate.config.ApiGatewayRepository
 import top.dteam.dgate.gateway.ApiGateway
 import top.dteam.dgate.gateway.SimpleResponse
@@ -100,17 +101,19 @@ class CircuitBreakerSpec extends Specification {
     def "CircuitBreak Default Options should work"() {
         setup:
         SimpleResponse result
+        PollingConditions conditions = new PollingConditions(timeout: 10)
 
         when:
         sleep(100)
         requestUtils.post("localhost", 7000, url, new JsonObject()) { simpleResponse ->
             result = simpleResponse
         }
-        TestUtils.waitResult(result, DEFAULT_OP_TIMEOUT + 1000)
 
         then:
-        result.statusCode == 500
-        result.payload.map.error == "operation timeout"
+        conditions.eventually {
+            assert result.statusCode == 500
+            assert result.payload.map.error == "operation timeout"
+        }
 
         where:
         url << ['/test', '/relay']
@@ -120,17 +123,19 @@ class CircuitBreakerSpec extends Specification {
     def "Global CircuitBreak Options should override the default Circuit Break Options"() {
         setup:
         SimpleResponse result
+        PollingConditions conditions = new PollingConditions(timeout: 10)
 
         when:
         sleep(100)
         requestUtils.post("localhost", 7001, url, new JsonObject()) { simpleResponse ->
             result = simpleResponse
         }
-        TestUtils.waitResult(result, 2000 + 500)
 
         then:
-        result.statusCode == 500
-        result.payload.map.error == "operation timeout"
+        conditions.eventually {
+            assert result.statusCode == 500
+            assert result.payload.map.error == "operation timeout"
+        }
 
         where:
         url << ['/test', '/relay']
@@ -140,6 +145,7 @@ class CircuitBreakerSpec extends Specification {
     def "Circuit Break Options for specific URL should be used first"() {
         setup:
         SimpleResponse result
+        PollingConditions conditions = new PollingConditions(timeout: 10)
 
         when:
         sleep(100)
@@ -149,8 +155,10 @@ class CircuitBreakerSpec extends Specification {
         TestUtils.waitResult(result, 3000 + 500)
 
         then:
-        result.statusCode == 500
-        result.payload.map.error == "operation timeout"
+        conditions.eventually {
+            assert result.statusCode == 500
+            assert result.payload.map.error == "operation timeout"
+        }
 
         where:
         url << ['/test', '/relay']

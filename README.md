@@ -1,5 +1,7 @@
 # dgate：an API Gateway based on Vert.x
 
+![badge](https://github.com/DTeam-Top/dgate/workflows/CI/badge.svg)
+
 dgate是基于Vertx的API Gateway。运行dgate的命令如下：
 
 ~~~
