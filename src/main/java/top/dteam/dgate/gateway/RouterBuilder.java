@@ -107,7 +107,7 @@ public class RouterBuilder {
             } else if (login.ignore().isEmpty()) {
                 login.only().forEach(url -> router.route(url).handler(jwtAuthHandler));
             } else if (login.only().isEmpty()) {
-                List<String> allUrls = urlConfigs.stream().map(config -> config.getUrl()).collect(Collectors.toList());
+                List<String> allUrls = urlConfigs.stream().map(UrlConfig::getUrl).collect(Collectors.toList());
                 Utils.addHandlerExcept(allUrls, login.ignore(), router, jwtAuthHandler);
             }
 
@@ -133,7 +133,7 @@ public class RouterBuilder {
 
             logger.error("Got [{}] during processing [{}], status code: {}. ",
                     routingContext.response().getStatusMessage(), routingContext.request().absoluteURI(), statusCode, routingContext.failure());
-            Map<String, String> payload = new HashMap<>();
+            Map<String, Object> payload = new HashMap<>();
             payload.put("error", routingContext.response().getStatusMessage());
             Utils.fireJsonResponse(routingContext.response(), statusCode, payload);
         });

@@ -24,11 +24,9 @@ public class RequestUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestUtils.class);
 
-    private Vertx vertx;
     private HttpClient httpClient;
 
     public RequestUtils(Vertx vertx) {
-        this.vertx = vertx;
         httpClient = vertx.createHttpClient();
     }
 
@@ -53,6 +51,7 @@ public class RequestUtils {
             , JsonObject data, HttpServerRequest clientRequest, Handler<SimpleResponse> handler) {
         HttpClientRequest request = httpClient.request(method, port, host, url, defaultResponseHandler(handler))
                 .setChunked(true)
+                .setFollowRedirects(true)
                 .putHeader("content-type", "application/json");
 
         putProxyHeaders(request, clientRequest);
@@ -72,6 +71,7 @@ public class RequestUtils {
                                     Handler<SimpleResponse> handler) {
         httpClient.request(method, port, host, url, defaultResponseHandler(handler))
                 .setChunked(true)
+                .setFollowRedirects(true)
                 .putHeader("content-type", "application/json")
                 .putHeader("Authorization", String.format("Bearer %s", token))
                 .end(data.toString());

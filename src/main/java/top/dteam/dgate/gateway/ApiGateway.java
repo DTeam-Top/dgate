@@ -1,18 +1,18 @@
 package top.dteam.dgate.gateway;
 
 import groovy.lang.Closure;
+import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.PermittedOptions;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
-import top.dteam.dgate.config.ApiGatewayConfig;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.http.HttpServer;
-import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.dteam.dgate.config.ApiGatewayConfig;
 import top.dteam.dgate.config.Consumer;
 import top.dteam.dgate.config.EventBusBridgeConfig;
 import top.dteam.dgate.config.Publisher;
@@ -57,7 +57,7 @@ public class ApiGateway extends AbstractVerticle {
     private void buildEventBusBridge(String urlPattern, Router router) {
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
         PermittedOptions allAllowed = new PermittedOptions().setAddressRegex(".*");
-        router.route(urlPattern).handler(sockJSHandler.bridge(new BridgeOptions()
+        router.mountSubRouter(urlPattern, sockJSHandler.bridge(new BridgeOptions()
                 .addInboundPermitted(allAllowed)
                 .addOutboundPermitted(allAllowed)));
     }
@@ -79,13 +79,14 @@ public class ApiGateway extends AbstractVerticle {
         );
     }
 
+    @SuppressWarnings("unchecked")
     private JsonObject transformIfNeeded(Object expected, Message<Object> message) {
         JsonObject result;
         if (expected instanceof Closure) {
-            result = (message == null) ? new JsonObject((Map) ((Closure) expected).call())
-                    : new JsonObject((Map) ((Closure) expected).call(message));
+            result = (message == null) ? new JsonObject(((Closure<Map<String, Object>>) expected).call())
+                    : new JsonObject(((Closure<Map<String, Object>>) expected).call(message));
         } else {
-            result = new JsonObject((Map) expected);
+            result = new JsonObject((Map<String, Object>) expected);
         }
 
         logger.debug("{}", result);

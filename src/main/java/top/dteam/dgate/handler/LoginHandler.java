@@ -8,7 +8,6 @@ import top.dteam.dgate.utils.JWTTokenGenerator;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class LoginHandler extends ProxyHandler {
 
     private JWTTokenGenerator tokenGenerator;
@@ -19,9 +18,10 @@ public class LoginHandler extends ProxyHandler {
     }
 
     @Override
-    protected Map createAfterContext() {
-        Map context = new HashMap<>();
+    protected Map<String, Object> createAfterContext() {
+        Map<String, Object> context = new HashMap<>();
         context.put("tokenGenerator", tokenGenerator);
         return context;
     }
+
 }

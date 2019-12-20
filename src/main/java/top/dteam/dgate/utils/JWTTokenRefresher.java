@@ -23,7 +23,7 @@ public class JWTTokenRefresher {
         return ((System.currentTimeMillis() / 1000) - payload.getLong("exp")) <= refreshLimit;
     }
 
-    public String refresh(long refreshExpire) {
+    public String refresh(int refreshExpire) {
         payload.remove("exp");
         payload.remove("iat");
         payload.remove("nbf");

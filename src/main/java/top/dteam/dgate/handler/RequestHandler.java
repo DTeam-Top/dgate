@@ -60,10 +60,8 @@ public abstract class RequestHandler implements GatewayRequestHandler {
 
     private void verifyMethodsAllowed(RoutingContext routingContext) {
         if (allowedMethods() != null && !allowedMethods().isEmpty()) {
-            if (allowedMethods().stream().anyMatch(method -> routingContext.request().method() == method)) {
-                return;
-            } else {
-                HashMap error = new HashMap();
+            if (allowedMethods().stream().noneMatch(method -> routingContext.request().method() == method)) {
+                HashMap<String, Object> error = new HashMap<>();
                 error.put("error", "Unsupported HTTP Method.");
                 Utils.fireJsonResponse(routingContext.response(), 400, error);
                 throw new UnsupportedOperationException("Unsupported HTTP Method.");
@@ -71,6 +69,7 @@ public abstract class RequestHandler implements GatewayRequestHandler {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void verifyRequiredExists(RoutingContext routingContext, JsonObject body) {
         if (requiredParams() == null) {
             return;
@@ -78,16 +77,16 @@ public abstract class RequestHandler implements GatewayRequestHandler {
 
         List<String> params;
         if (requiredParams() instanceof List) {
-            params = (List) requiredParams();
+            params = (List<String>) requiredParams();
         } else if (requiredParams() instanceof Map) {
-            params = (List) ((Map) requiredParams()).get(routingContext.request().method().toString().toLowerCase());
+            params = ((Map<String, List<String>>) requiredParams()).get(routingContext.request().method().toString().toLowerCase());
         } else {
             throw new InvalidConfiguriationException("required must be List or Map:" + requiredParams().getClass().getName());
         }
 
         if (params != null && !params.isEmpty()) {
             if (params.stream().anyMatch(param -> !body.containsKey(param))) {
-                HashMap error = new HashMap();
+                HashMap<String, Object> error = new HashMap<>();
                 error.put("error", "required params not in request.");
                 Utils.fireJsonResponse(routingContext.response(), 400, error);
                 throw new IllegalArgumentException("required params not in request");

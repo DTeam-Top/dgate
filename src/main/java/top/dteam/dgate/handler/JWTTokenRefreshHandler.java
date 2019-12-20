@@ -13,9 +13,9 @@ public class JWTTokenRefreshHandler implements Handler<RoutingContext> {
 
     private JWTTokenRefresher jwtTokenRefresher;
     private long refreshLimit;
-    private long refreshExpire;
+    private int refreshExpire;
 
-    public JWTTokenRefreshHandler(JWTTokenRefresher jwtTokenRefresher, long refreshLimit, long refreshExpire) {
+    public JWTTokenRefreshHandler(JWTTokenRefresher jwtTokenRefresher, long refreshLimit, int refreshExpire) {
         this.jwtTokenRefresher = jwtTokenRefresher;
         this.refreshLimit = refreshLimit;
         this.refreshExpire = refreshExpire;
@@ -28,7 +28,7 @@ public class JWTTokenRefreshHandler implements Handler<RoutingContext> {
         if (payload != null) {
             jwtTokenRefresher.setPayload(payload);
             if (jwtTokenRefresher.lessThan(refreshLimit)) {
-                HashMap<String, String> tokenMap = new HashMap<>();
+                HashMap<String, Object> tokenMap = new HashMap<>();
                 tokenMap.put("token", jwtTokenRefresher.refresh(refreshExpire));
                 Utils.fireJsonResponse(routingContext.response(), 200, tokenMap);
             } else {

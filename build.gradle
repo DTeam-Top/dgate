@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.0'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
     }
 }
 
@@ -26,15 +26,15 @@ repositories {
 }
 
 dependencies {
-    compile "org.codehaus.groovy:groovy-all:${GROOVY_VER}"
-    compile "io.vertx:vertx-core:${VERTX_VER}"
-    compile "io.vertx:vertx-web:${VERTX_VER}"
-    compile "io.vertx:vertx-auth-jwt:${VERTX_VER}"
-    compile "io.vertx:vertx-circuit-breaker:${VERTX_VER}"
-    compile "io.vertx:vertx-ignite:${VERTX_VER}"
-    compile "ch.qos.logback:logback-classic:${LOGBACK_VER}"
+    implementation "org.codehaus.groovy:groovy:${GROOVY_VER}"
+    implementation "io.vertx:vertx-core:${VERTX_VER}"
+    implementation "io.vertx:vertx-web:${VERTX_VER}"
+    implementation "io.vertx:vertx-auth-jwt:${VERTX_VER}"
+    implementation "io.vertx:vertx-circuit-breaker:${VERTX_VER}"
+    implementation "io.vertx:vertx-ignite:${VERTX_VER}"
+    implementation "ch.qos.logback:logback-classic:${LOGBACK_VER}"
 
-    testCompile "org.spockframework:spock-core:${SPOCK_VER}"
+    testImplementation "org.spockframework:spock-core:${SPOCK_VER}"
 }
 
 version = '0.1.5'

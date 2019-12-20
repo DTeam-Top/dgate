@@ -103,7 +103,7 @@ public class ProxyHandler extends RequestHandler {
 
             CircuitBreaker circuitBreaker = circuitBreakers.get(upstreamURL.toString());
             circuitBreaker.execute(future -> {
-                Map beforeContext = createBeforeContext();
+                Map<String, Object> beforeContext = createBeforeContext();
                 if (upstreamURL.getBefore() != null && beforeContext != null) {
                     upstreamURL.getBefore().setDelegate(beforeContext);
                 }
@@ -111,7 +111,7 @@ public class ProxyHandler extends RequestHandler {
                         upstreamURL.getHost(), upstreamURL.getPort(), requestURI,
                         processParamsIfBeforeHandlerExists(upstreamURL.getBefore(), params), clientRequest,
                         simpleResponse -> {
-                            Map afterContext = createAfterContext();
+                            Map<String, Object> afterContext = createAfterContext();
                             if (upstreamURL.getAfter() != null && afterContext != null) {
                                 upstreamURL.getAfter().setDelegate(afterContext);
                             }
@@ -155,11 +155,11 @@ public class ProxyHandler extends RequestHandler {
         }
     }
 
-    protected Map createBeforeContext() {
+    protected Map<String, Object> createBeforeContext() {
         return null;
     }
 
-    protected Map createAfterContext() {
+    protected Map<String, Object> createAfterContext() {
         return null;
     }
 
@@ -169,7 +169,7 @@ public class ProxyHandler extends RequestHandler {
             try {
                 params = before.call(params);
             } catch (Exception e) {
-                logger.error("Before handler got exception: {}", e);
+                logger.error("Before handler got exception: ", e);
                 throw e;
             }
         }
@@ -182,7 +182,7 @@ public class ProxyHandler extends RequestHandler {
             try {
                 result = after.call(result);
             } catch (Exception e) {
-                logger.error("After handler got exception: {}", e);
+                logger.error("After handler got exception: ", e);
                 throw e;
             }
         }
